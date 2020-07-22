@@ -1,15 +1,17 @@
 package application.connector;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.*;
 import java.util.logging.Level;
 
 import artifactFactory.factories.JiraArtifactFactory;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import core.base.Artifact;
 import core.base.ErrorLogger;
 import core.connector.ITimeTravelingConnector;
@@ -27,30 +29,43 @@ public class TimeTravelingConnector implements ITimeTravelingConnector{
 	private JiraArtifactFactory artifactFactory;
 	private ReplayableSession replayableSession;
 
-	public TimeTravelingConnector() throws FileNotFoundException, IOException, NoSuchMethodException, SecurityException {
+	public static void main(String[] args) {
+
+		try {
+			TimeTravelingConnector t = new TimeTravelingConnector();
+			t.travelTo(Timestamp.from(Instant.MIN));
+			Optional<List<Artifact>> list = t.fetchDatabase();
+
+			if(list.isPresent()) {
+				System.out.println(list);
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public TimeTravelingConnector() throws IOException, NoSuchMethodException, SecurityException {
 		
 		//initializing the services
 		Neo4JServiceManager n4jm = new Neo4JServiceManager(); 	
 		Neo4JServiceFactory.init(n4jm);		
-		
-		JiraArtifactService jiraArtifactService = new JiraArtifactService();
-		JiraServiceFactory.init(jiraArtifactService);		
-		
-		
-	/*	String file ="UAV-1006.json";
-      
-		BufferedReader reader = new BufferedReader(new FileReader(file));
+
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, Object> map;
 		StringBuilder sb = new StringBuilder();
-		reader.lines().forEach( l -> sb.append(l));
-		reader.close();
-				
-	    ObjectMapper mapper = new ObjectMapper();
-		HashMap<String, Object> map = mapper.readValue(sb.toString(), new TypeReference<Map<String, Object>>(){});
-		Map<String, Object> schema = (HashMap<String, Object>) map.get("schema"), names = (HashMap<String, Object>) map.get("names");
-			
-	*/
-		
-		artifactFactory = new JiraArtifactFactory(jiraArtifactService.getSchema(), jiraArtifactService.getNames());
+		String line;
+
+		BufferedReader br = new BufferedReader (new FileReader("Dronology_Schema.json"));
+		while((line=br.readLine())!=null) {sb.append(line);}
+		br.close();
+		map = mapper.readValue(sb.toString(), new TypeReference<Map<String, Object>>(){});
+
+
+		artifactFactory = new JiraArtifactFactory(map.get("schema"), map.get("names"));
 		JiraArtifactFactoryServiceFactory.init(artifactFactory);
 
 		ErrorLoggerServiceFactory.init(new ErrorLogger());

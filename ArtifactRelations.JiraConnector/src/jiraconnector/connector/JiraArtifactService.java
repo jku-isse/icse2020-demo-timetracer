@@ -1,13 +1,13 @@
 package jiraconnector.connector;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.HashMap;
+import java.util.logging.Level;
 
 import com.atlassian.httpclient.api.HttpClient;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -16,12 +16,14 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import core.persistence.IJiraArtifactService;
+import core.services.ErrorLoggerServiceFactory;
 
 public class JiraArtifactService implements IJiraArtifactService {
 	
 	
-	private static final int ISSUES_PER_ACCESS=1000;
-	
+	private static final int ISSUES_PER_ACCESS=50;
+
+	private Map<String, Object> artifactMap;
 	private AsynchronousIssueRestClientRawExtension rawExtension;
 		
 	public JiraArtifactService() throws IOException {
@@ -36,11 +38,12 @@ public class JiraArtifactService implements IJiraArtifactService {
 		HttpClientFactory.init(uri, username, pw);
 		HttpClient client = HttpClientFactory.createHttpClient();
 		
-		rawExtension = new AsynchronousIssueRestClientRawExtension(client, baseUri);				
+		rawExtension = new AsynchronousIssueRestClientRawExtension(client, baseUri);
+		artifactMap = new HashMap<String, Object>();
 	}
 	
 	@Override
-	public Map<String, Object> getArtifact(String key) throws JsonParseException, JsonMappingException, IOException {
+	public Map<String, Object> getArtifact(String key) throws IOException {
 		
 		//fetching the issue from the database via REST-API
 		String json = rawExtension.getIssue(key);		
@@ -50,25 +53,28 @@ public class JiraArtifactService implements IJiraArtifactService {
 	}
 	
 	@Override
-	public String getArtifactIdFromKey(String key) throws JsonParseException, JsonMappingException, IOException {
+	public String getArtifactIdFromKey(String key) throws IOException {
 		
-		//fetching the issue from the database via REST-API
+		/*//fetching the issue from the database via REST-API
 		String json = rawExtension.getIssue(key);		
 		Map<String, Object> issue =  jsonToMap(json);			
-		return (String) issue.get("id");
+		return (String) issue.get("id");*/
+
+		return (String) ((Map<String, Object>) artifactMap.get(key)).get("id");
 		
 	}
 
-	private static Map<String, Object> jsonToMap(String json) throws JsonParseException, JsonMappingException, IOException {	
+	private static Map<String, Object> jsonToMap(String json) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(json, new TypeReference<Map<String, Object>>(){});
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public ArrayList<Object> getAllArtifacts() throws JsonParseException, JsonMappingException, IOException {
+	public ArrayList<Object> getAllArtifacts() throws IOException {
 
-		String json = rawExtension.getIssues(0, ISSUES_PER_ACCESS);
+
+	/*	String json = rawExtension.getIssues(0, ISSUES_PER_ACCESS);
 		Map<String, Object> jsonMap = jsonToMap(json);
 		ArrayList<Object> issues = (ArrayList<Object>) jsonMap.get("issues");
 		
@@ -77,16 +83,45 @@ public class JiraArtifactService implements IJiraArtifactService {
 		
 		while(fetchedIssues<totalIssues) {
 			json = rawExtension.getIssues(fetchedIssues, ISSUES_PER_ACCESS);
+			FileOutputStream fileOutputStream = new FileOutputStream("safety.txt");
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
+			bw.write(json +"," + "\n");
 			jsonMap = jsonToMap(json);
 			issues.addAll((ArrayList<Object>) jsonMap.get("issues"));
 			fetchedIssues = fetchedIssues + ISSUES_PER_ACCESS;
+			ErrorLoggerServiceFactory.getErrorLogger().log(Level.INFO, "Fetsched " + fetchedIssues + " from " + "total issuemaps");
 		}
-		
+	*/
+
+		/**
+		 * Dronology Raw Data
+		 */
+		Map<String, Object> map;
+		StringBuilder sb = new StringBuilder();
+		String line;
+
+		BufferedReader br = new BufferedReader (new FileReader("Dronology_items.json"));
+		while((line=br.readLine())!=null) {sb.append(line);}
+		br.close();
+		map = jsonToMap(sb.toString());
+		ArrayList<Object> issues = (ArrayList<Object>) map.get("issues");
+
+		sb = new StringBuilder();
+		br = new BufferedReader (new FileReader("Dronology_items_1.json"));
+		while((line=br.readLine())!=null) {sb.append(line);}
+		br.close();
+		map = jsonToMap(sb.toString());
+		issues.addAll((ArrayList<Object>) map.get("issues"));
+
+		issues.forEach( issue -> {
+			artifactMap.put(((String) ((Map<String, Object>) issue).get("key")), issue);
+		});
+
 		return issues;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> getNames() throws JsonParseException, JsonMappingException, IOException{	
+	public Map<String, Object> getNames() throws  IOException{
 		String json = rawExtension.getNamesAndScheme();
 		Map<String, Object> names = (Map<String, Object>) jsonToMap(json).get("names");
 		

@@ -65,7 +65,9 @@ public class TypeGetterMapper {
 			} else {
 				method = typeToMethod.get(type);
 				if(method==null) return null;
-				return (String) method.invoke(service, id);
+				if(id!=null) {
+					return (String) method.invoke(service, id);
+				}
 			}
 		
 		} else {

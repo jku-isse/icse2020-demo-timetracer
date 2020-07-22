@@ -4,6 +4,6 @@ import core.base.ChangeLogItem;
 
 public interface IDeltaGenerator {
  
-	public ChangeLogItem buildChangeLog( JiraChangeLogItem jiraChangeLogItem);
+	public ChangeLogItem buildChangeLog( BaseChangeLogItem baseChangeLogItem);
 	
 }

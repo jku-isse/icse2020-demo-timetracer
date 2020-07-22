@@ -3,13 +3,16 @@ package testReplayableSession;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.HashMap;
-
-import org.junit.jupiter.api.Test;
+import java.util.Map;
 
 import artifactFactory.factories.JiraArtifactFactory;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import core.base.Artifact;
 import core.base.ControlLog;
 import core.base.ErrorLogger;
@@ -20,6 +23,7 @@ import core.services.JiraServiceFactory;
 import core.services.Neo4JServiceFactory;
 import jiraconnector.connector.JiraArtifactService;
 import neo4j.connector.Neo4JServiceManager;
+import org.junit.Test;
 import replayableSession.session.ReplayableSession;
 
 public class testReplayableSession {
@@ -30,10 +34,20 @@ public class testReplayableSession {
 	public void initialize() throws IOException, NoSuchMethodException, SecurityException  {
 		
 		Neo4JServiceManager n4jm = new Neo4JServiceManager(); 
-		jiraArtifactService = new JiraArtifactService();		
 		JiraServiceFactory.init(jiraArtifactService);
-		Neo4JServiceFactory.init(n4jm);	
-		factory = new JiraArtifactFactory(jiraArtifactService.getSchema(), jiraArtifactService.getNames());
+		Neo4JServiceFactory.init(n4jm);
+
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, Object> map;
+		StringBuilder sb = new StringBuilder();
+		String line;
+
+		BufferedReader br = new BufferedReader (new FileReader("Dronology_Schema.json"));
+		while((line=br.readLine())!=null) {sb.append(line);}
+		br.close();
+		map = mapper.readValue(sb.toString(), new TypeReference<Map<String, Object>>(){});
+
+		factory = new JiraArtifactFactory(map.get("schema"), map.get("names"));
 		ErrorLoggerServiceFactory.init(new ErrorLogger());
 		JiraArtifactFactoryServiceFactory.init(factory);
 		

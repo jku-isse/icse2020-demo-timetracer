@@ -14,8 +14,8 @@ import artifactFactories.commonTypeFactories.StringFactory;
 import artifactFactory.mappers.JiraChangeLogFieldToFieldIdMapper;
 import artifactFactory.mappers.JiraIdFactoryMapper;
 import artifactFactory.mappers.TypeFactories;
+import core.artifactFactory.deltaGenerator.BaseChangeLogItem;
 import core.artifactFactory.deltaGenerator.IDeltaGenerator;
-import core.artifactFactory.deltaGenerator.JiraChangeLogItem;
 import core.artifactFactory.mappers.IdValueMapper;
 import core.artifactFactory.typeFactories.IFieldTypeFactory;
 import core.base.ChangeLogItem;
@@ -52,13 +52,13 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 	}
 	
 	@Override
-	public ChangeLogItem buildChangeLog(JiraChangeLogItem jiraChangeLogItem) {
+	public ChangeLogItem buildChangeLog(BaseChangeLogItem baseChangeLogItem) {
 				
 		boolean epicLink= false, epicChild=false, subtask=false;
 		String relationship;
 		
-		if(jiraChangeLogItem.getField().equals("Link")||(subtask=jiraChangeLogItem.getField().equals("Parent"))||
-				(epicLink=jiraChangeLogItem.getField().equals("Epic Link")||(epicLink=epicChild=jiraChangeLogItem.getField().equals("Epic Child")))) {
+		if(baseChangeLogItem.getField().equals("Link")||(subtask= baseChangeLogItem.getField().equals("Parent"))||
+				(epicLink= baseChangeLogItem.getField().equals("Epic Link")||(epicLink=epicChild= baseChangeLogItem.getField().equals("Epic Child")))) {
 	
 			RelationChangeLogItem changeLogItem = new RelationChangeLogItem();
 			
@@ -66,14 +66,14 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 				
 				if(subtask) {
 					
-					if(jiraChangeLogItem.getOldValue()!=null) {
-						changeLogItem.setFromKey(jiraChangeLogItem.getFromString());
-						changeLogItem.setFromId(jiraChangeLogItem.getOldValue());
+					if(baseChangeLogItem.getOldValue()!=null) {
+						changeLogItem.setFromKey(baseChangeLogItem.getFromString());
+						changeLogItem.setFromId(baseChangeLogItem.getOldValue());
 					} 
 					
-					if(jiraChangeLogItem.getNewValue()!=null) {			 
-						changeLogItem.setToKey(jiraChangeLogItem.getToString());
-						changeLogItem.setToId(jiraChangeLogItem.getNewValue());		
+					if(baseChangeLogItem.getNewValue()!=null) {
+						changeLogItem.setToKey(baseChangeLogItem.getToString());
+						changeLogItem.setToId(baseChangeLogItem.getNewValue());
 					}		
 					
 					changeLogItem.setArtifactIsSource(false);
@@ -83,23 +83,23 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 					
 				} else {
 					
-					if(jiraChangeLogItem.getOldValue()!=null) {
-						relationship = jiraChangeLogItem.getFromString();
-						changeLogItem.setFromKey(jiraChangeLogItem.getOldValue());
+					if(baseChangeLogItem.getOldValue()!=null) {
+						relationship = baseChangeLogItem.getFromString();
+						changeLogItem.setFromKey(baseChangeLogItem.getOldValue());
 						//for a standardLink the id of source is not contained in the changeLog
 						//and therefore needs to be fetched from JIRA during creation
 						try {
-							changeLogItem.setFromId(JiraServiceFactory.getJiraArtifactService().getArtifactIdFromKey(jiraChangeLogItem.getOldValue()));
+							changeLogItem.setFromId(JiraServiceFactory.getJiraArtifactService().getArtifactIdFromKey(baseChangeLogItem.getOldValue()));
 						} catch (Exception e) {
 							changeLogItem.setFromId(changeLogItem.getFromKey());
 						}
 					} else {
-						relationship = jiraChangeLogItem.getToString();
-						changeLogItem.setToKey(jiraChangeLogItem.getNewValue());
+						relationship = baseChangeLogItem.getToString();
+						changeLogItem.setToKey(baseChangeLogItem.getNewValue());
 						try {
-							changeLogItem.setToId(JiraServiceFactory.getJiraArtifactService().getArtifactIdFromKey(jiraChangeLogItem.getNewValue()));
+							changeLogItem.setToId(JiraServiceFactory.getJiraArtifactService().getArtifactIdFromKey(baseChangeLogItem.getNewValue()));
 						} catch (Exception e) {
-							ErrorLoggerServiceFactory.getErrorLogger().log(Level.INFO, "JiraDeltaGenerator: Key is used as id since " + jiraChangeLogItem.getNewValue() + " is deletedInSource !");
+							ErrorLoggerServiceFactory.getErrorLogger().log(Level.INFO, "JiraDeltaGenerator: Key is used as id since " + baseChangeLogItem.getNewValue() + " is deletedInSource !");
 							changeLogItem.setToId(changeLogItem.getToKey());
 						}
 					}				
@@ -123,7 +123,7 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 					});
 					
 					if(changeLogItem.getSourceRole()==null) {
-						ErrorLoggerServiceFactory.getErrorLogger().log(Level.WARNING, "JiraDeltaGenerator: IssueLinkType Deleted: RelationChangeLog " + jiraChangeLogItem.getId() + "was not created!");
+						ErrorLoggerServiceFactory.getErrorLogger().log(Level.WARNING, "JiraDeltaGenerator: IssueLinkType Deleted: RelationChangeLog " + baseChangeLogItem.getId() + "was not created!");
 						return null;
 					}	
 				
@@ -131,14 +131,14 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 					
 			} else {
 				
-				if(jiraChangeLogItem.getOldValue()!=null) {
-					changeLogItem.setFromKey(jiraChangeLogItem.getFromString());
-					changeLogItem.setFromId(jiraChangeLogItem.getOldValue());
+				if(baseChangeLogItem.getOldValue()!=null) {
+					changeLogItem.setFromKey(baseChangeLogItem.getFromString());
+					changeLogItem.setFromId(baseChangeLogItem.getOldValue());
 				} 
 				
-				if(jiraChangeLogItem.getNewValue()!=null) {			 
-					changeLogItem.setToKey(jiraChangeLogItem.getToString());
-					changeLogItem.setToId(jiraChangeLogItem.getNewValue());		
+				if(baseChangeLogItem.getNewValue()!=null) {
+					changeLogItem.setToKey(baseChangeLogItem.getToString());
+					changeLogItem.setToId(baseChangeLogItem.getNewValue());
 				}		
 				
 				if(epicChild) {
@@ -151,11 +151,11 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 				changeLogItem.setDestinationRole("is EPIC-CHILD of");
 			}
 						
-			changeLogItem.setArtifactId(jiraChangeLogItem.getArtifactId());
-			changeLogItem.setCorrespondingArtifactIdInSource(jiraChangeLogItem.getCorrespondingArtifactIdInSource());
-			changeLogItem.setCorrespondingArtifactId(jiraChangeLogItem.getArtifactId());
-			changeLogItem.setId(jiraChangeLogItem.getId());
-			changeLogItem.setTimeCreated(jiraChangeLogItem.getTimeCreated());
+			changeLogItem.setArtifactId(baseChangeLogItem.getArtifactId());
+			changeLogItem.setCorrespondingArtifactIdInSource(baseChangeLogItem.getCorrespondingArtifactIdInSource());
+			changeLogItem.setCorrespondingArtifactId(baseChangeLogItem.getArtifactId());
+			changeLogItem.setId(baseChangeLogItem.getId());
+			changeLogItem.setTimeCreated(baseChangeLogItem.getTimeCreated());
 			
 			return changeLogItem;
 			
@@ -165,7 +165,7 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 
 			//create entry in properties, which can be serialized
 			try {
-				updateFields(changeLogItem, jiraChangeLogItem);
+				updateFields(changeLogItem, baseChangeLogItem);
 			} catch (JsonParseException e) {
 				e.printStackTrace();
 			} catch (JsonMappingException e) {
@@ -174,11 +174,11 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 				e.printStackTrace();
 			}
 			
-			changeLogItem.setArtifactId(jiraChangeLogItem.getArtifactId());
-			changeLogItem.setCorrespondingArtifactIdInSource(jiraChangeLogItem.getCorrespondingArtifactIdInSource());
-			changeLogItem.setCorrespondingArtifactId(jiraChangeLogItem.getArtifactId());
-			changeLogItem.setId(jiraChangeLogItem.getId());
-			changeLogItem.setTimeCreated(jiraChangeLogItem.getTimeCreated());
+			changeLogItem.setArtifactId(baseChangeLogItem.getArtifactId());
+			changeLogItem.setCorrespondingArtifactIdInSource(baseChangeLogItem.getCorrespondingArtifactIdInSource());
+			changeLogItem.setCorrespondingArtifactId(baseChangeLogItem.getArtifactId());
+			changeLogItem.setId(baseChangeLogItem.getId());
+			changeLogItem.setTimeCreated(baseChangeLogItem.getTimeCreated());
 
 			return changeLogItem;
 
@@ -188,23 +188,23 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 	
 	
 	@SuppressWarnings("rawtypes")
-	private ChangeLogItem updateFields(PropertyChangeLogItem changeLogItem, JiraChangeLogItem jiraChangeLogItem) throws JsonParseException, JsonMappingException, IOException {
+	private ChangeLogItem updateFields(PropertyChangeLogItem changeLogItem, BaseChangeLogItem baseChangeLogItem) throws JsonParseException, JsonMappingException, IOException {
 		
-		String fieldId = fieldFactoryMapper.map(jiraChangeLogItem.getField());
+		String fieldId = fieldFactoryMapper.map(baseChangeLogItem.getField());
 		IFieldTypeFactory fieldTypeFactory = idFactoryMapper.map(fieldId);		
 		Object newData, oldData;
 		String newDataString, oldDataString;
 						
 		try {
-			newData = jsonToMap(jiraChangeLogItem.getNewValue());
-			oldData = jsonToMap(jiraChangeLogItem.getOldValue());
+			newData = jsonToMap(baseChangeLogItem.getNewValue());
+			oldData = jsonToMap(baseChangeLogItem.getOldValue());
 		} catch(Exception e) {
-			ErrorLoggerServiceFactory.getErrorLogger().log(Level.WARNING, "DeltaGenerator: updateFields(): " + e.getMessage() + " (" + jiraChangeLogItem.getField() + " cannot be deserialized)\n");
+			ErrorLoggerServiceFactory.getErrorLogger().log(Level.WARNING, "DeltaGenerator: updateFields(): " + e.getMessage() + " (" + baseChangeLogItem.getField() + " cannot be deserialized)\n");
 			return changeLogItem;
 		}
 			
-		newDataString = jiraChangeLogItem.getToString();
-		oldDataString = jiraChangeLogItem.getFromString();
+		newDataString = baseChangeLogItem.getToString();
+		oldDataString = baseChangeLogItem.getFromString();
 	
 		if(fieldTypeFactory!=null) {
 					

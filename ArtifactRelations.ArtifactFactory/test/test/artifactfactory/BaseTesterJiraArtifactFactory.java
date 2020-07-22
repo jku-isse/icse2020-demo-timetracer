@@ -78,8 +78,7 @@ public class BaseTesterJiraArtifactFactory {
 
 			
 		}
-		
-		
+
 	}
 	
 	@SuppressWarnings("unchecked")

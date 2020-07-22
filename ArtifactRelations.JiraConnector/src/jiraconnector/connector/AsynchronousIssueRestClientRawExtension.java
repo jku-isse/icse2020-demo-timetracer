@@ -63,6 +63,11 @@ public class AsynchronousIssueRestClientRawExtension extends AbstractAsynchronou
 		URI uri = URI.create(baseUri + "/rest/api/2/search?expand=changelog&startAt=" + startAt + "&maxResults=" + maxResults);       
 		return getAndParse(uri).claim();		
 	}
+
+	public String getAllIssueIds(int startAt, int maxResults) {
+		URI uri = URI.create(baseUri + "/rest/api/2/search?startAt=" + startAt + "&maxResults=" + maxResults);
+		return getAndParse(uri).claim();
+	}
 	
 	public String getNamesAndScheme() {		
 		URI uri = URI.create(baseUri + "/rest/api/2/search?expand=names,schema&startAt=0&maxResults=1");       

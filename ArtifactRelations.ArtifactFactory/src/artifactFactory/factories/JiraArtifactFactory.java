@@ -39,7 +39,6 @@ public class JiraArtifactFactory implements IArtifactFactory {
 	protected IdValueMapper idTypeMapper;	
 	protected TypeGetterMapper typeGetterMapper;
 	
-	protected JiraArtifactService jiraArtifactService;
 	protected HistoryFactory historyFactory;
 	protected JiraDeltaGenerator deltaGenerator;
 	
@@ -56,7 +55,7 @@ public class JiraArtifactFactory implements IArtifactFactory {
 		idTypeMapper = new IdValueMapper(this.schema);
 		
 		this.typeGetterMapper = new TypeGetterMapper(idNameMapper, idTypeMapper);
-		historyFactory = new HistoryFactory(typeGetterMapper);
+		historyFactory = new HistoryFactory();
 		deltaGenerator = new JiraDeltaGenerator(this.schema, this.names);
 		
 	}

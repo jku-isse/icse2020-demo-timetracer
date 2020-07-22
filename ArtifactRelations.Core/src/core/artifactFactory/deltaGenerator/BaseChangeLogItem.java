@@ -2,9 +2,9 @@ package core.artifactFactory.deltaGenerator;
 
 import java.sql.Timestamp;
 
-public class JiraChangeLogItem {
+public class BaseChangeLogItem {
 
-	public JiraChangeLogItem() {
+	public BaseChangeLogItem() {
 
 	}
 

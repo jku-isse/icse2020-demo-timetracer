@@ -22,7 +22,7 @@ import neo4j.connector.Neo4JServiceManager;
 public class Connector implements IConnector{
 
 	private JiraArtifactFactory artifactFactory;
-	private ArtifactService artifactService;
+	private ArtifactService neo4JartifactService;
 
 	public Connector() throws FileNotFoundException, IOException, NoSuchMethodException, SecurityException {
 		
@@ -30,7 +30,7 @@ public class Connector implements IConnector{
 		//initialize the Neo4JService with the LiveDatabase
 		Neo4JServiceManager n4jm = new Neo4JServiceManager(); 	
 		Neo4JServiceFactory.init(n4jm);		
-		artifactService = Neo4JServiceFactory.getNeo4JServiceManager().getArtifactService();
+		neo4JartifactService = Neo4JServiceFactory.getNeo4JServiceManager().getArtifactService();
 		
 		JiraArtifactService jiraArtifactService = new JiraArtifactService();
 		JiraServiceFactory.init(jiraArtifactService);		
@@ -50,7 +50,7 @@ public class Connector implements IConnector{
 		//check if artifact is in the database
 		//the assumption is that the Neo4J-database 
 		//contains all information
-		iArtifact = artifactService.getArtifact(artifactId);
+		iArtifact = neo4JartifactService.getArtifact(artifactId);
 		
 		//the artifact is not in the database
 		if(iArtifact==null) {
@@ -66,7 +66,7 @@ public class Connector implements IConnector{
 		
 		ArrayList<Artifact> artifacts = new ArrayList<Artifact>();
 		
-		artifactService.getAllArtifacts().forEach( ia -> {		
+		neo4JartifactService.getAllArtifacts().forEach(ia -> {
 			artifacts.add(artifactFactory.deserialize(ia));			
 		});
 		
