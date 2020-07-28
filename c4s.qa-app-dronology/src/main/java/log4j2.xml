@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+    <Properties>
+        <Property name="basePath">.</Property>
+    </Properties>
+ 
+    <Appenders>
+		<RollingFile name="RegularLogfileAppender" fileName="detailed.log" filePattern="detailedlog-%d{yyyy-MM-dd}.%i.log">
+      		 <PatternLayout   pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n" />
+      		 <Policies>
+        		<OnStartupTriggeringPolicy minSize="0" />
+        		<SizeBasedTriggeringPolicy size="10MB" />
+        		<TimeBasedTriggeringPolicy />
+    		</Policies>
+    		<DefaultRolloverStrategy max="5" />
+    	</RollingFile>
+    	<RollingFile name="JSONLogfileAppender" fileName="analyticslog.json" filePattern="analyticsLog-%d{yyyy-MM-dd}.%i.json">
+      		 <JSONLayout complete="true" compact="true" eventEol="true" includeStacktrace="false" objectMessageAsJsonObject="true" />
+    		<Policies>
+        		<OnStartupTriggeringPolicy minSize="0" />
+        		<SizeBasedTriggeringPolicy size="10MB" />
+        		<TimeBasedTriggeringPolicy />
+    		</Policies>
+    	</RollingFile>
+    	 <Async name="AsyncJsonAppender" bufferSize="80">
+            <AppenderRef ref="JSONLogfileAppender"/>
+        </Async>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout   pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %F:%L - %msg%n" />
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="c4s.analytics" level="debug" additivity="false">
+        	<appender-ref ref="AsyncJsonAppender" />
+        </Logger>
+        <Logger name="c4s" level="debug" additivity="true">
+        	<appender-ref ref="RegularLogfileAppender"/>
+        </Logger>
+        <Root level="debug" additivity="false">
+<!--         	<appender-ref ref="RegularLogfileAppender" level="debug" /> -->
+            <appender-ref ref="console" level="info" />
+        </Root>
+    </Loggers>
+</Configuration>

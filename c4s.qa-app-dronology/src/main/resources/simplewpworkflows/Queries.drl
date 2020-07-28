@@ -1,0 +1,55 @@
+package c4s.impactassessment.jiraapplication
+
+import c4s.impactassessment.workflowmodel.JiraIssueExtension;
+import c4s.impactassessment.workflowmodel.*;
+
+import core.base.Artifact;
+
+query "Artifacts" ()
+	artifact : Artifact()
+end
+
+query "ArtifactByKey" (String artifactKey)
+	artifact : Artifact(id.equals(artifactKey))
+end
+
+query "JiraIssueExtensions" ()
+	jiraIssueExtension : JiraIssueExtension()
+end
+
+query "JiraIssueExtensionsByIssueKey" (String issueKey)
+	jiraIssueExtension : JiraIssueExtension(key.equals(issueKey))
+end
+
+query "JiraIssueExtensionsByProcessId" (String processId)
+	jiraIssueExtension : JiraIssueExtension(getWorkflowId().equals(processId))
+end
+
+query "WorkflowInstanceByProcessId" (String processId)
+	workflowInstance : WorkflowInstance(getId().equals(processId))
+end
+
+query "WorkflowInstances" ()
+	workflowInstances : WorkflowInstance()
+end
+
+query "DecisionNodeInstanceByProcessId" (String processId)
+	decisionNodeInstance : DecisionNodeInstance(getWorkflow().getId().equals(processId))
+end
+
+query "WorkflowTaskByProcessId" (String processId)
+	workflowTask : WorkflowTask(getWorkflow().getId().equals(processId))
+end
+
+query "ArtifactWrappersById" (String wrapperId)
+	wrapper : ArtifactWrapper(getId().equals(wrapperId))
+end
+
+query "ArtifactWrappersByProcessId" (String processId)
+	wrapper : ArtifactWrapper(processId.equals(getWorkflowId()))
+end
+
+query "AbstractArtifactsByProcessId" (String processId)
+	abstractArtifact : AbstractArtifact(processId.equals(getWorkflowId()))
+end
+

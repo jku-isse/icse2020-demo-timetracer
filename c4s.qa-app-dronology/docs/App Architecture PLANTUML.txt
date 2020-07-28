@@ -1,0 +1,130 @@
+@startuml
+
+title Impact Assessment Support App Architecture
+
+node DebianVM {
+
+database "CouchDB" {
+    folder "Notification Logs" as nlDB
+    folder "Artifact Cache" as acDB #Aqua
+}
+
+database "Neo4J"
+
+queue "AMQP" as amqp #Aqua
+
+package "Impact Assessment Support App" as backend {
+    
+    component Rules [
+        Notification Rules
+        Update Processing
+        Queries
+    ]
+    
+
+    
+    component "RuleEvaluation Subsystem" {
+        [Jira Connector] as jcRead
+        [Jama Connector] as jamaRead #Aqua
+        [Jira Rules] as jr
+        [Role Mapper] as rm
+        [Process Update Event Handler] as pueh #Aqua
+        database "Knowledge Base" as kb
+        queue "Event Queue" as q
+        
+        note right of jcRead
+        ConfigProperty: jiraConnectorUsername
+        ConfigProperty: jiraConnectorPassword
+        endnote
+    }
+    
+    component "Notification Subsystem" {
+        [Notification Dispatcher] as nd
+        [Jira Connector] as jcWrite
+        [Jira Issue Commenter] as jic
+        [Notification Logger] as nl
+        [Notification Processor] as np
+    }
+    
+    folder "Local Config (File System)" {
+        [Notification Templates] as templates
+        [Role to Engineer Excel Mapping] as excel
+        
+    }
+    
+    jcRead --> q
+    jamaRead ..> q
+    jcRead ..> acDB
+    q --> jr
+    jr --> kb
+    jr --> rm
+    jr --> nd
+    jr --> Neo4J
+    pueh ..> kb
+    
+    nd --> nl
+    nl --> nlDB
+    nd --> np
+    nd --> jic
+    jic --> jcWrite
+    
+    kb --> Rules
+    
+
+}
+
+    package "Frontend" as frontend {
+     component "Web Server" #Aqua {
+        [Neo4J Connector] as neo4jRead
+        [Process Instance Editor] as pie
+     }
+     
+     frontend .down. backend 
+     neo4jRead ..> Neo4J
+     pie ..> amqp
+     amqp ..> pueh
+     
+    }
+
+
+
+rm -down-> excel
+np -down-> templates
+
+note top of DebianVM
+    Login: bitnami
+    PW: c4simpactassessmentdemo
+endnote
+
+note bottom of acDB #Aqua
+    ConfigProperty: artifactCacheCouchDBname
+    Login: admin2
+    PW: c4simpactassessmentdemo
+endnote
+
+note bottom of nlDB
+    ConfigProperty: notificationCouchDBname
+    Login: admin1
+    PW: c4simpactassessmentdemo
+endnote
+
+note bottom of excel
+    ConfigProperty:excelRoleMapperFile
+endnote
+
+note bottom of templates
+    ConfigProperty:notificationTemplateFile
+endnote
+
+   
+
+    note bottom of jcWrite
+        ConfigProperty: commentConnectorUsername
+        ConfigProperty: commentConnectorPassword
+    endnote
+
+}
+
+
+ 
+@enduml

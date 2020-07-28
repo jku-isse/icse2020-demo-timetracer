@@ -1,0 +1,579 @@
+{
+	"id": "411829",
+	"self": "https://jira.frequentis.frq/rest/api/2/issue/411829",
+	"key": "PVCSG-2",
+	"names": {
+		"customfield_13100": "CI Description",
+		"fixVersions": "Fix Version/s",
+		"customfield_11200": "Sprint",
+		"resolution": "Resolution",
+		"customfield_10500": "Rank (Obsolete)",
+		"customfield_12800": "issueFunction",
+		"customfield_10901": "Mantis ID",
+		"customfield_10904": "Mantis URL",
+		"customfield_10905": "Resource / Team",
+		"customfield_10906": "Requirement Text",
+		"customfield_10908": "Based on Requirements",
+		"lastViewed": "Last Viewed",
+		"customfield_12000": "Release Note Comment",
+		"priority": "Priority",
+		"labels": "Labels",
+		"customfield_10103": "Acceptance Criteria",
+		"customfield_11700": "SW Requirements Progress",
+		"customfield_11702": "Code Progress",
+		"customfield_11701": "SW Design Progress",
+		"customfield_11704": "SW Verification Execution Progress",
+		"timeestimate": "Remaining Estimate",
+		"aggregatetimeoriginalestimate": "Σ Original Estimate",
+		"versions": "Affects Version/s",
+		"customfield_11703": "SW Verification Cases Progress",
+		"customfield_11705": "Progress Comment",
+		"customfield_11708": "Fix Component Version/s",
+		"customfield_11707": "Customer notification required",
+		"issuelinks": "Linked Issues",
+		"assignee": "Assignee",
+		"status": "Status",
+		"components": "Component/s",
+		"customfield_13201": "Closing Date",
+		"customfield_13202": "Impact Assessment Comment",
+		"customfield_13600": "Requirements",
+		"customfield_12502": "Safety Comment",
+		"customfield_12900": "issueFunction",
+		"aggregatetimeestimate": "Σ Remaining Estimate",
+		"creator": "Creator",
+		"subtasks": "Sub-Tasks",
+		"reporter": "Reporter",
+		"customfield_12100": "Copy Warning",
+		"aggregateprogress": "Σ Progress",
+		"customfield_12501": "Safety Relevance",
+		"customfield_12500": "Jama ID",
+		"customfield_11403": "Design Reference",
+		"customfield_11402": "Functional Block/s",
+		"customfield_11405": "Booking Info",
+		"customfield_11404": "Functional Block Interface/s",
+		"customfield_11407": "Impact Assessment Performed?",
+		"customfield_11803": "RequirementTextFreeze1",
+		"customfield_11802": "Requested Due Date",
+		"customfield_11409": "Impact Assessment Confirmed?",
+		"customfield_11408": "Customer notified",
+		"customfield_11804": "RequirementTextFreeze2",
+		"progress": "Progress",
+		"votes": "Votes",
+		"worklog": "Log Work",
+		"issuetype": "Issue Type",
+		"timespent": "Time Spent",
+		"project": "Project",
+		"customfield_13300": "System Requirements Progress",
+		"aggregatetimespent": "Σ Time Spent",
+		"customfield_13301": "System Design Progress",
+		"customfield_11401": "Subsystem/s",
+		"customfield_13700": "System Integration Progress",
+		"resolutiondate": "Resolved",
+		"workratio": "Work Ratio",
+		"watches": "Watchers",
+		"created": "Created",
+		"customfield_12200": "System Testcase progress",
+		"customfield_12202": "Final SWA & QM progress",
+		"customfield_12201": "System Verification progress",
+		"customfield_12600": "Release Note Comment of Sub-tasks",
+		"customfield_12203": "jqltField",
+		"customfield_11501": "Epic Link",
+		"customfield_13800": "Subtask Names",
+		"customfield_11902": "Subtask components",
+		"updated": "Updated",
+		"timeoriginalestimate": "Original Estimate",
+		"description": "Description",
+		"customfield_13000": "Rank",
+		"customfield_11500": "x_Sprint",
+		"timetracking": "Time Tracking",
+		"customfield_11215": "technical_field_for_issue_linking",
+		"security": "Security Level",
+		"attachment": "Attachment",
+		"summary": "Summary",
+		"customfield_10000": "Flagged",
+		"customfield_11210": "Impacted life-cycle data",
+		"customfield_11211": "Impact Assessment Evidence",
+		"customfield_12301": "Combined Status",
+		"customfield_11212": "Additional Information",
+		"customfield_12300": "Delegated Status",
+		"customfield_11205": "Affected Component Version/s",
+		"customfield_11208": "External Reference",
+		"duedate": "Due Date",
+		"customfield_10916": "Announced Version/s",
+		"comment": "Comment"
+	},
+	"schema": {
+		"customfield_13100": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:readonlyfield",
+			"customId": 13100
+		},
+		"fixVersions": {
+			"type": "array",
+			"items": "version",
+			"system": "fixVersions"
+		},
+		"customfield_11200": {
+			"type": "array",
+			"items": "string",
+			"custom": "com.pyxis.greenhopper.jira:gh-sprint",
+			"customId": 11200
+		},
+		"resolution": {
+			"type": "resolution",
+			"system": "resolution"
+		},
+		"customfield_10500": {
+			"type": "any",
+			"custom": "com.pyxis.greenhopper.jira:gh-global-rank",
+			"customId": 10500
+		},
+		"customfield_12800": {
+			"type": "any",
+			"custom": "com.onresolve.jira.groovy.groovyrunner:jqlFunctionsCustomFieldType",
+			"customId": 12800
+		},
+		"customfield_10901": {
+			"type": "number",
+			"custom": "com.atlassian.jira.plugins.jira-importers-plugin:bug-importid",
+			"customId": 10901
+		},
+		"customfield_10904": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:url",
+			"customId": 10904
+		},
+		"customfield_10905": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 10905
+		},
+		"customfield_10906": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+			"customId": 10906
+		},
+		"customfield_10908": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+			"customId": 10908
+		},
+		"lastViewed": {
+			"type": "datetime",
+			"system": "lastViewed"
+		},
+		"customfield_12000": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+			"customId": 12000
+		},
+		"priority": {
+			"type": "priority",
+			"system": "priority"
+		},
+		"labels": {
+			"type": "array",
+			"items": "string",
+			"system": "labels"
+		},
+		"customfield_10103": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+			"customId": 10103
+		},
+		"customfield_11700": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 11700
+		},
+		"customfield_11702": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 11702
+		},
+		"customfield_11701": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 11701
+		},
+		"customfield_11704": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 11704
+		},
+		"timeestimate": {
+			"type": "number",
+			"system": "timeestimate"
+		},
+		"aggregatetimeoriginalestimate": {
+			"type": "number",
+			"system": "aggregatetimeoriginalestimate"
+		},
+		"versions": {
+			"type": "array",
+			"items": "version",
+			"system": "versions"
+		},
+		"customfield_11703": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 11703
+		},
+		"customfield_11705": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+			"customId": 11705
+		},
+		"customfield_11708": {
+			"type": "array",
+			"items": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:labels",
+			"customId": 11708
+		},
+		"customfield_11707": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 11707
+		},
+		"issuelinks": {
+			"type": "array",
+			"items": "issuelinks",
+			"system": "issuelinks"
+		},
+		"assignee": {
+			"type": "user",
+			"system": "assignee"
+		},
+		"status": {
+			"type": "status",
+			"system": "status"
+		},
+		"components": {
+			"type": "array",
+			"items": "component",
+			"system": "components"
+		},
+		"customfield_13201": {
+			"type": "datetime",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:datetime",
+			"customId": 13201
+		},
+		"customfield_13202": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+			"customId": 13202
+		},
+		"customfield_13600": {
+			"type": "string",
+			"custom": "com.frequentis.jira.plugin.frequentis-sqlfield:sqlfield",
+			"customId": 13600
+		},
+		"customfield_12502": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+			"customId": 12502
+		},
+		"customfield_12900": {
+			"type": "any",
+			"custom": "com.onresolve.jira.groovy.groovyrunner:jqlFunctionsCustomFieldType",
+			"customId": 12900
+		},
+		"aggregatetimeestimate": {
+			"type": "number",
+			"system": "aggregatetimeestimate"
+		},
+		"creator": {
+			"type": "user",
+			"system": "creator"
+		},
+		"subtasks": {
+			"type": "array",
+			"items": "issuelinks",
+			"system": "subtasks"
+		},
+		"reporter": {
+			"type": "user",
+			"system": "reporter"
+		},
+		"customfield_12100": {
+			"type": "any",
+			"custom": "at.celix.jira.plugins.frequentis-delegate-n-escalate:CopyWarningCustomField",
+			"customId": 12100
+		},
+		"aggregateprogress": {
+			"type": "progress",
+			"system": "aggregateprogress"
+		},
+		"customfield_12501": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 12501
+		},
+		"customfield_12500": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+			"customId": 12500
+		},
+		"customfield_11403": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+			"customId": 11403
+		},
+		"customfield_11402": {
+			"type": "array",
+			"items": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:multiselect",
+			"customId": 11402
+		},
+		"customfield_11405": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+			"customId": 11405
+		},
+		"customfield_11404": {
+			"type": "array",
+			"items": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:multiselect",
+			"customId": 11404
+		},
+		"customfield_11407": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 11407
+		},
+		"customfield_11803": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+			"customId": 11803
+		},
+		"customfield_11802": {
+			"type": "date",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:datepicker",
+			"customId": 11802
+		},
+		"customfield_11409": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 11409
+		},
+		"customfield_11408": {
+			"type": "array",
+			"items": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes",
+			"customId": 11408
+		},
+		"customfield_11804": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+			"customId": 11804
+		},
+		"progress": {
+			"type": "progress",
+			"system": "progress"
+		},
+		"votes": {
+			"type": "votes",
+			"system": "votes"
+		},
+		"worklog": {
+			"type": "array",
+			"items": "worklog",
+			"system": "worklog"
+		},
+		"issuetype": {
+			"type": "issuetype",
+			"system": "issuetype"
+		},
+		"timespent": {
+			"type": "number",
+			"system": "timespent"
+		},
+		"project": {
+			"type": "project",
+			"system": "project"
+		},
+		"customfield_13300": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 13300
+		},
+		"aggregatetimespent": {
+			"type": "number",
+			"system": "aggregatetimespent"
+		},
+		"customfield_13301": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 13301
+		},
+		"customfield_11401": {
+			"type": "array",
+			"items": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:multiselect",
+			"customId": 11401
+		},
+		"customfield_13700": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 13700
+		},
+		"resolutiondate": {
+			"type": "datetime",
+			"system": "resolutiondate"
+		},
+		"workratio": {
+			"type": "number",
+			"system": "workratio"
+		},
+		"watches": {
+			"type": "watches",
+			"system": "watches"
+		},
+		"created": {
+			"type": "datetime",
+			"system": "created"
+		},
+		"customfield_12200": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 12200
+		},
+		"customfield_12202": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 12202
+		},
+		"customfield_12201": {
+			"type": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+			"customId": 12201
+		},
+		"customfield_12600": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+			"customId": 12600
+		},
+		"customfield_12203": {
+			"type": "any",
+			"custom": "com.j-tricks.jql-plugin:jqlt-field",
+			"customId": 12203
+		},
+		"customfield_11501": {
+			"type": "any",
+			"custom": "com.pyxis.greenhopper.jira:gh-epic-link",
+			"customId": 11501
+		},
+		"customfield_13800": {
+			"type": "string",
+			"custom": "com.onresolve.jira.groovy.groovyrunner:scripted-field",
+			"customId": 13800
+		},
+		"customfield_11902": {
+			"type": "string",
+			"custom": "com.onresolve.jira.groovy.groovyrunner:scripted-field",
+			"customId": 11902
+		},
+		"updated": {
+			"type": "datetime",
+			"system": "updated"
+		},
+		"timeoriginalestimate": {
+			"type": "number",
+			"system": "timeoriginalestimate"
+		},
+		"description": {
+			"type": "string",
+			"system": "description"
+		},
+		"customfield_13000": {
+			"type": "any",
+			"custom": "com.pyxis.greenhopper.jira:gh-lexo-rank",
+			"customId": 13000
+		},
+		"customfield_11500": {
+			"type": "array",
+			"items": "string",
+			"custom": "com.pyxis.greenhopper.jira:gh-sprint",
+			"customId": 11500
+		},
+		"timetracking": {
+			"type": "timetracking",
+			"system": "timetracking"
+		},
+		"customfield_11215": {
+			"type": "string",
+			"custom": "at.celix.jira.plugins.frequentis-delegate-n-escalate:CreateLinkCustomField",
+			"customId": 11215
+		},
+		"security": {
+			"type": "securitylevel",
+			"system": "security"
+		},
+		"attachment": {
+			"type": "array",
+			"items": "attachment",
+			"system": "attachment"
+		},
+		"summary": {
+			"type": "string",
+			"system": "summary"
+		},
+		"customfield_10000": {
+			"type": "array",
+			"items": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes",
+			"customId": 10000
+		},
+		"customfield_11210": {
+			"type": "array",
+			"items": "option",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes",
+			"customId": 11210
+		},
+		"customfield_11211": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+			"customId": 11211
+		},
+		"customfield_12301": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:readonlyfield",
+			"customId": 12301
+		},
+		"customfield_11212": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea",
+			"customId": 11212
+		},
+		"customfield_12300": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:readonlyfield",
+			"customId": 12300
+		},
+		"customfield_11205": {
+			"type": "array",
+			"items": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:labels",
+			"customId": 11205
+		},
+		"customfield_11208": {
+			"type": "string",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+			"customId": 11208
+		},
+		"duedate": {
+			"type": "date",
+			"system": "duedate"
+		},
+		"customfield_10916": {
+			"type": "array",
+			"items": "version",
+			"custom": "com.atlassian.jira.plugin.system.customfieldtypes:multiversion",
+			"customId": 10916
+		},
+		"comment": {
+			"type": "comments-page",
+			"system": "comment"
+		}
+	}
+}

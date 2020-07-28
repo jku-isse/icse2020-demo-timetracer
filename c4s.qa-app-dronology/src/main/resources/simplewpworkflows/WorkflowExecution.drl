@@ -1,0 +1,406 @@
+//created on: 02.08.2018
+package c4s.impactassessment.process.execution
+
+import java.util.Set;
+import java.util.List;
+
+import c4s.impactassessment.workflowmodel.*;
+import c4s.impactassessment.workflowmodel.TaskLifecycle.*;
+import c4s.impactassessment.workflowmodel.WorkflowTask.ArtifactInput;
+import c4s.impactassessment.workflowmodel.WorkflowTask.ArtifactOutput;
+import c4s.impactassessment.jiraapplication.JiraUtils;
+
+
+import core.base.Artifact;
+import core.fieldValues.jira.*;
+import core.fieldTypes.utility.FieldType;
+import core.fieldValues.common.*;
+
+//declare any global variables here
+global org.apache.logging.log4j.Logger log;
+
+
+
+rule "AddWPTicketAsInputToNewTasks"
+    when // matches any inBranch for the Workflow waiting for input,
+    	$a : Artifact(  )      
+        $dni : DecisionNodeInstance( getWorkflow().getId().equals($a.getIdInSource()) && 
+        							 getWorkflow().getWorkflowDefinition().getId().equals(DronologyWorkflow.WORKFLOW_TYPE) &&
+									 state == DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS
+									 , $wfi : getWorkflow() ) 
+									 	@watch ( state )         		
+    then      // creates the task and adds the ticket as input
+       modify( $dni ){ completedDataflowFulfilledBranchConditionInvolvingActivationPropagation() }; // setting ActivationPropagationCompleted to true etc.
+       List<TaskDefinition> tds = $dni.getTaskDefinitionsForFulfilledOutBranchesWithUnresolvedTasks();
+       	tds.stream().
+       		forEach(td -> { 
+       			log.debug(String.format("Upon DNI %s completion, trigger progress by Instantiating Tasktype %s ", $dni.getDefinition().getId(), td.toString()));
+       			WorkflowTask wt = $wfi.instantiateTask(td);
+       			wt.addOutput(new ArtifactOutput(JiraUtils.getHumanReadableResourceLinkEndpoint($a), DronologyWorkflow.INPUT_ROLE_WPTICKET ));
+       			wt.signalEvent(Events.INPUTCONDITIONS_FULFILLED);
+       			insert(wt);
+       			Set<AbstractWorkflowInstanceObject> newDNIs = $wfi.activateDecisionNodesFromTask(wt);
+       			newDNIs.stream().forEach( dni -> insert(dni) );
+       			$dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches
+       			log.debug("Input Conditions for task fullfilled: "+wt.toString());
+       		});                         
+end
+
+/*
+rule "AddWPTicketAsInputToExistingTasks"
+	when
+		$wt : WorkflowTask ( getInputState() == TaskLifecycle.InputState.INPUT_MISSING )
+		$wpticket : JiraIssueExtension( getWorkflowId().equals($wt.getWorkflow().getId()) )
+	then
+		modify($wt){
+			addInput(new ArtifactInput($wpticket, WPWorkflow.INPUT_ROLE_WPTICKET )) ,
+       		signalEvent(Events.INPUTCONDITIONS_FULFILLED)
+		}
+end
+*/
+
+
+
+rule "OnlyIfInProgress"
+    when 
+    	$a : Artifact(getDirtyFlag()==2 && ((Status)$a.getFields().get("status").getValue()).getName().orElse("").equals("In Progress"))			  
+    then
+        	log.debug("Second");
+end
+
+rule "triggerCheck"
+    when 
+    	$a : Artifact(getDirtyFlag()!=0)			  
+    then
+        	log.debug("still triggers");
+end
+
+rule "testEquals"
+    when 
+    	$a : Artifact()
+    	@watch(dirtyFlag)
+        $task : WorkflowTask()
+        $dn : DecisionNodeInstance()					  
+    then
+        if($a.getFields()!=null) {
+        	log.debug("status of a: " + ((Status)$a.getFields().get("status").getValue()).getName().orElse(""));
+        	log.debug("equals: " + ((Status)$a.getFields().get("status").getValue()).getName().orElse("").equals("Resolved"));      
+        	log.debug("dirtyFlag: " + $a.getDirtyFlag());      
+        
+       }
+end
+
+rule "OnlyIOpen"
+    when 
+    	$a : Artifact(((Status)getFields().get("status").getValue()).getName().orElse("").equals("Open"))			  
+    then
+        	log.debug("I am open");
+end
+
+rule "Open2InProgress-InBranchConditions"
+    when 
+    	$a : Artifact(getDirtyFlag()!=0&&((Status)getFields().get("status").getValue()).getName().orElse("").equals("In Progress") )
+        $task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) )
+        						@watch ( outputState, lifecycleState )
+        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getIdInSource()) &&
+        							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
+        							getDefinition().getId().equals("open2inProgressOrResolved") && 
+        							getInBranchForWorkflowTask($task) != null &&
+        							!isTaskCompletionConditionsFullfilled())					  
+    then
+         log.debug("Transition from OPEN to IN_PROGRESS for triggertask: "+$task.toString());
+		modify($dn){ 
+			activateInBranch($dn.getInBranchForWorkflowTask($task)) ,
+			activateOutBranch("inProgressIn")
+		}
+end
+
+//needs to be fixed
+rule "InProgress2Resolved-InBranchConditions"
+    when 
+    	$a : Artifact(getDirtyFlag()!=0 && ((Status)getFields().get("status").getValue()).getName().orElse("").equals("Resolved") )
+        $task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_IN_PROGRESS))
+        						@watch ( outputState, lifecycleState )
+        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getIdInSource()) &&
+        							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
+        							getDefinition().getId().equals("inProgressToResolved") && 
+        							getInBranchForWorkflowTask($task) != null &&
+        							!isTaskCompletionConditionsFullfilled())					  
+    then
+         log.debug("Transition from IN_PROGRESS to RESOLVED for triggertask: "+$task.toString());
+		modify($dn){ 
+			activateInBranch($dn.getInBranchForWorkflowTask($task)),
+			activateOutBranch("resolvedIn")
+		}
+end
+
+rule "Open2Resolved-InBranchConditions"
+    when 
+    	$a : Artifact(getDirtyFlag()!=0 && (((Status)getFields().get("status").getValue()).getName().orElse("").equals("Resolved") ||
+    				   ((Status)getFields().get("status").getValue()).getName().orElse("").equals("Closed")) )
+        $task : WorkflowTask( getTaskType().getId().equals(DronologyWorkflow.TASK_STATE_OPEN) )
+        						@watch ( outputState, lifecycleState )
+        $dn : DecisionNodeInstance( getWorkflow().getId().equals($a.getIdInSource()) &&
+        							getWorkflow().getId().equals($task.getWorkflow().getId()) &&
+        							getDefinition().getId().equals("open2inProgressOrResolved") && 
+        							getInBranchForWorkflowTask($task) != null &&
+        							!isTaskCompletionConditionsFullfilled())					  
+    then
+         log.info("Transition from OPEN to RESOLVED for triggertask: "+$task.toString());
+		modify($dn){ 
+			activateInBranch($dn.getInBranchForWorkflowTask($task)) ,
+			activateOutBranches("inProgressIn", "resolvedIn")
+		}
+end
+
+/*
+//###########################################################
+//created on: 02.08.2018
+package c4s.impactassessment.process.execution
+import java.util.Set;
+import java.util.List;
+import c4s.impactassessment.workflowmodel.*;
+import c4s.impactassessment.workflowmodel.TaskLifecycle.*;
+import c4s.impactassessment.workflowmodel.WorkflowTask.ArtifactInput;
+import c4s.impactassessment.workflowmodel.WorkflowTask.ArtifactOutput;
+
+//declare any global variables here
+global org.apache.logging.log4j.Logger log;
+global WorkflowDefinition wfd;
+
+
+rule "AddWPTicketAsInputToNewTasks"
+    when // matches any inBranch for the WPManagementWorkflow waiting for input,         
+        $dni : DecisionNodeInstance(  getWorkflow().getWorkflowDefinition().getId().equals(WPManagementWorkflow.WORKPACKAGE_CHANGE_MANAGEMENT_WORKFLOW_TYPE) &&
+        							 //isTaskCompletionConditionsFullfilled() && 
+									 //isContextConditionsFullfilled() &&
+									 //isTaskActivationConditionsFullfilled() &&
+									 //!isActivationPropagationCompleted() ,
+									 state==DecisionNodeDefinition.States.PASSED_OUTBRANCH_CONDITIONS
+									 , $wfi : getWorkflow() ) 
+									 	@watch ( state )
+        //$task : WorkflowTask( lifecycleState==TaskLifecycle.State.AVAILABLE &&
+        //					!hasInputArtifactOfRole(WPManagementWorkflow.INPUT_ROLE_WPTICKET)          					
+        //		)         		
+        $wpticket : JiraIssueExtension( getWorkflowId().equals($dni.getWorkflow().getId()) )		
+    then      // creates the task and adds the ticket as input
+       modify( $dni ){ completedDataflowInvolvingActivationPropagation() }; // setting ActivationPropagationCompleted to true etc.
+       List<TaskDefinition> tds = $dni.getTaskDefinitionsForNonDisabledOutBranchesWithUnresolvedTasks();
+       	tds.stream().
+       		forEach(td -> { 
+       			log.debug(String.format("Upon DNI %s completion, trigger progress by Instantiating Tasktype %s ", $dni.getDefinition().getId(), td.toString()));
+       			WorkflowTask wt = $wfi.instantiateTask(td);
+       			wt.addInput(new ArtifactInput($wpticket, WPManagementWorkflow.INPUT_ROLE_WPTICKET ));
+       			wt.signalEvent(Events.INPUTCONDITIONS_FULFILLED);
+       			insert(wt);
+       			Set<AbstractWorkflowInstanceObject> newDNIs = $wfi.activateDecisionNodesFromTask(wt);
+       			newDNIs.stream().forEach( dni -> insert(dni) );
+       			$dni.consumeTaskForUnconnectedOutBranch(wt); // connect this task to the decision node instance on one of the outbranches
+       			log.debug("Input Conditions for task fullfilled: "+wt.toString());
+       		});                         
+end
+rule "AddWPTicketAsInputToExistingTasks"
+	when
+		$wt : WorkflowTask ( getInputState() == TaskLifecycle.InputState.INPUT_MISSING )
+		$wpticket : JiraIssueExtension( getWorkflowId().equals($wt.getWorkflow().getId()) )
+	then
+		modify($wt){
+			addInput(new ArtifactInput($wpticket, WPManagementWorkflow.INPUT_ROLE_WPTICKET )) ,
+       		signalEvent(Events.INPUTCONDITIONS_FULFILLED)
+		}
+end
+
+rule "OutputMissingOnCompletion"
+	when $task : WorkflowTask ( lifecycleState == TaskLifecycle.State.PARTIALLY_COMPLETED 
+								&&	getOutputState() != TaskLifecycle.OutputState.OUTPUT_SUFFICIENT )
+	then
+		log.info(String.format("Task %s set to %s , necessary output %s missing", $task.getTaskType(), $task.getLifecycleState(), $task.getMissingOutput().toString()));
+end
+rule "SSSTaskStateUpdate"
+	when 		
+		$task : WorkflowTask (  getTaskType().getId() == WPManagementWorkflow.TASKTYPE_SSS_REVISING  ) @watch (lifecycleState)
+	then		
+		log.debug("SSS Task State update: "+$task.getLifecycleState());
+end
+
+// Rules for mapping jira ticket to task completion
+rule "SSSCompletion"
+	when 
+		$wpticket : JiraIssueExtension( isSSSReviewFinished()==true ) 
+		$task : WorkflowTask (  getWorkflow().getId().equals($wpticket.getWorkflowId()) &&
+								 getTaskType().getId() == WPManagementWorkflow.TASKTYPE_SSS_REVISING &&
+								!hasOutputArtifactOfRole(WPManagementWorkflow.OUTPUT_ROLE_SSSREVIEW) && 							    
+							      ! (getLifecycleState() == TaskLifecycle.State.COMPLETED || 
+							    	getLifecycleState() == TaskLifecycle.State.PARTIALLY_COMPLETED || 
+							    	getLifecycleState() == TaskLifecycle.State.IGNORED )  
+							    ) 
+	then
+		if ($wpticket.getSssReviewLink() != null && $wpticket.getSssReviewLink().length() > 0) {
+			ResourceLink rl = WPManagementWorkflow.getLink($wpticket.getSssReviewLink(), "SSS Review Link");
+			rl.setWorkflowInstance($task.getWorkflow());
+			modify($task){ addOutput(new ArtifactOutput(rl, WPManagementWorkflow.OUTPUT_ROLE_SSSREVIEW)) };
+		} else {
+			modify($task){ signalEvent(Events.PARTIALLY_COMPLETE) };
+		}
+		log.debug("Task completed as scheduled: "+$task.toString());
+end
+rule "SSSOutputSufficient"
+	when 
+		$wpticket : JiraIssueExtension( getSssReviewLink() != null && getSssReviewLink().length() > 0 ) 
+		$task : WorkflowTask (  getWorkflow().getId().equals($wpticket.getWorkflowId()) &&
+								getTaskType().getId() == WPManagementWorkflow.TASKTYPE_SSS_REVISING &&
+								!hasOutputArtifactOfRole(WPManagementWorkflow.OUTPUT_ROLE_SSSREVIEW) &&
+								hasInputArtifactWithId($wpticket.getId())  ) 
+	then
+		ResourceLink rl = WPManagementWorkflow.getLink($wpticket.getSssReviewLink(), "SSS Review Link");
+		rl.setWorkflowInstance($task.getWorkflow());
+		modify($task){ addOutput(new ArtifactOutput(rl, WPManagementWorkflow.OUTPUT_ROLE_SSSREVIEW)) };
+		log.debug("Task output sufficient: "+$task.toString());
+end
+rule "SSDDCompletion"
+	when 
+		$wpticket : JiraIssueExtension( isSSDDReviewFinished()==true ) 
+		$task : WorkflowTask (  getWorkflow().getId().equals($wpticket.getWorkflowId()) &&
+								getTaskType().getId() == WPManagementWorkflow.TASKTYPE_SSDD_REVISING &&
+								!hasOutputArtifactOfRole(WPManagementWorkflow.OUTPUT_ROLE_SSDDREVIEW) && 
+							    ! (getLifecycleState() == TaskLifecycle.State.COMPLETED || 
+							    	getLifecycleState() == TaskLifecycle.State.PARTIALLY_COMPLETED || 
+							    	getLifecycleState() == TaskLifecycle.State.IGNORED )  
+							  ) 
+	then
+		if ($wpticket.getSsddReviewLink() != null && $wpticket.getSsddReviewLink().length() > 0) {
+			ResourceLink rl = WPManagementWorkflow.getLink($wpticket.getSsddReviewLink(), "SSDD Review Link");
+			rl.setWorkflowInstance($task.getWorkflow());
+			modify($task){ addOutput(new ArtifactOutput(rl, WPManagementWorkflow.OUTPUT_ROLE_SSDDREVIEW)) };
+		} else {
+			modify($task){ signalEvent(Events.PARTIALLY_COMPLETE) };
+		}
+		log.debug("Task completed as scheduled: "+$task.toString());
+end
+rule "SSDDOutputSufficient"
+	when 
+		$wpticket : JiraIssueExtension( getSsddReviewLink() != null && getSsddReviewLink().length() > 0 ) 
+		$task : WorkflowTask (  getWorkflow().getId().equals($wpticket.getWorkflowId()) &&
+								getTaskType().getId() == WPManagementWorkflow.TASKTYPE_SSDD_REVISING &&
+								!hasOutputArtifactOfRole(WPManagementWorkflow.OUTPUT_ROLE_SSDDREVIEW) &&
+								hasInputArtifactWithId($wpticket.getId()) 
+							 ) 
+	then
+		ResourceLink rl = WPManagementWorkflow.getLink($wpticket.getSsddReviewLink(), "SSDD Review Link");
+		rl.setWorkflowInstance($task.getWorkflow());
+		modify($task){ addOutput(new ArtifactOutput(rl, WPManagementWorkflow.OUTPUT_ROLE_SSDDREVIEW)) };
+		log.debug("Task output sufficient: "+$task.toString());
+end
+rule "PrematureSSDDOutputSufficient"
+	when 
+		$wpticket : JiraIssueExtension( getSsddReviewLink() != null && getSsddReviewLink().length() > 0 ) 
+		not WorkflowTask (  getWorkflow().getId().equals($wpticket.getWorkflowId()) &&
+							getTaskType().getId() == WPManagementWorkflow.TASKTYPE_SSDD_REVISING  ) 
+		$wfi : WorkflowInstance( getId() == $wpticket.getWorkflowId())
+	then
+		ResourceLink rl = WPManagementWorkflow.getLink($wpticket.getSsddReviewLink(), "SSDD Review Link");
+		rl.setWorkflowInstance($wfi);
+		TaskDefinition td = $wfi.getWorkflowDefinition().getTDbyID( WPManagementWorkflow.TASKTYPE_SSDD_REVISING ); 		
+		log.debug("Premature Task output sufficient for type: "+td.toString());
+		WorkflowTask wt = $wfi.instantiateTask(td);
+       	wt.addOutput(new ArtifactOutput(rl, WPManagementWorkflow.OUTPUT_ROLE_SSDDREVIEW));
+       	insert(wt);
+       	Set<AbstractWorkflowInstanceObject> newDNIs = $wfi.activateDecisionNodesFromTask(wt);
+       	newDNIs.stream().forEach( dni -> insert(dni) );			
+		log.debug("Premature Task output sufficient: "+wt.toString());
+end
+rule "FEDDCompletion"
+	when 
+		$wpticket : JiraIssueExtension( getFeddReviewLink() != null && getFeddReviewLink().length() > 0 ) 
+		$task : WorkflowTask (  getWorkflow().getId().equals($wpticket.getWorkflowId()) &&
+								getTaskType().getId() == WPManagementWorkflow.TASKTYPE_FEDD_REVISING &&
+								!hasOutputArtifactOfRole(WPManagementWorkflow.OUTPUT_ROLE_FEDDREVIEW) &&  
+								getLifecycleState() != TaskLifecycle.State.COMPLETED  ) 
+	then		
+		ResourceLink rl = WPManagementWorkflow.getLink($wpticket.getFeddReviewLink(), "FEDD Review Link");
+		rl.setWorkflowInstance($task.getWorkflow());
+		modify($task){ addOutput(new ArtifactOutput(rl, WPManagementWorkflow.OUTPUT_ROLE_FEDDREVIEW)) };
+		log.debug("Task completed as scheduled: "+$task.toString());
+end
+rule "PrematureFEDDCompletion"
+	when 
+		$wpticket : JiraIssueExtension( getFeddReviewLink() != null && getFeddReviewLink().length() > 0 ) 
+		not WorkflowTask (  getWorkflow().getId().equals($wpticket.getWorkflowId()) &&
+							getTaskType().getId() == WPManagementWorkflow.TASKTYPE_FEDD_REVISING  ) 
+		$wfi : WorkflowInstance( getId() == $wpticket.getWorkflowId()) 	
+	then		
+		ResourceLink rl = WPManagementWorkflow.getLink($wpticket.getFeddReviewLink(), "FEDD Review Link");			
+		rl.setWorkflowInstance($wfi);
+		log.debug("Premature Task");
+		TaskDefinition td = $wfi.getWorkflowDefinition().getTDbyID( WPManagementWorkflow.TASKTYPE_FEDD_REVISING ); 
+		log.debug("Premature Task output sufficient for type: "+td.toString());		
+		WorkflowTask wt = $wfi.instantiateTask(td);
+       	wt.addOutput(new ArtifactOutput(rl, WPManagementWorkflow.OUTPUT_ROLE_FEDDREVIEW));
+       	insert(wt);
+       	Set<AbstractWorkflowInstanceObject> newDNIs = $wfi.activateDecisionNodesFromTask(wt);
+       	newDNIs.stream().forEach( dni -> insert(dni) );			
+		log.debug("Task prematurely completed: "+wt.toString());	
+end
+rule "SRSCompletion"
+	when 
+		$wpticket : JiraIssueExtension( getSss2srsMappingReviewLink() != null && getSss2srsMappingReviewLink().length() > 0 ) 
+		$task : WorkflowTask (  getWorkflow().getId().equals($wpticket.getWorkflowId()) &&
+								getTaskType().getId() == WPManagementWorkflow.TASKTYPE_SSS_TO_SRS_MAPPING &&
+								!hasOutputArtifactOfRole(WPManagementWorkflow.OUTPUT_ROLE_SSS_SRS_MAPPINGREVIEW) && 
+							    getLifecycleState() != TaskLifecycle.State.COMPLETED  ) 
+	then		
+		ResourceLink rl = WPManagementWorkflow.getLink($wpticket.getSss2srsMappingReviewLink(), "SSS2SRS Review Link");
+		rl.setWorkflowInstance($task.getWorkflow());
+		modify($task){ addOutput(new ArtifactOutput(rl, WPManagementWorkflow.OUTPUT_ROLE_SSS_SRS_MAPPINGREVIEW)) };
+		log.debug("Task completed as scheduled: "+$task.toString());	
+end
+
+rule "PrematureSRSCompletion"
+	when 
+		$wpticket : JiraIssueExtension( getSss2srsMappingReviewLink() != null && getSss2srsMappingReviewLink().length() > 0 ) 
+		not WorkflowTask ( getWorkflow().getId().equals($wpticket.getWorkflowId()) &&
+							getTaskType().getId() == WPManagementWorkflow.TASKTYPE_SSS_TO_SRS_MAPPING )
+		$wfi : WorkflowInstance( getId() == $wpticket.getWorkflowId()) 		
+	then		
+		ResourceLink rl = WPManagementWorkflow.getLink($wpticket.getSss2srsMappingReviewLink(), "SSS2SRS Review Link");
+		rl.setWorkflowInstance($wfi);
+		TaskDefinition td = $wfi.getWorkflowDefinition().getTDbyID( WPManagementWorkflow.TASKTYPE_SSS_TO_SRS_MAPPING ); 	
+		log.debug("Premature Task output sufficient for type: "+td.toString());	
+		WorkflowTask wt = $wfi.instantiateTask(td);
+       	wt.addOutput(new ArtifactOutput(rl, WPManagementWorkflow.OUTPUT_ROLE_SSS_SRS_MAPPINGREVIEW));
+       	insert(wt);
+       	Set<AbstractWorkflowInstanceObject> newDNIs = $wfi.activateDecisionNodesFromTask(wt);
+       	newDNIs.stream().forEach( dni -> insert(dni) );			
+		log.debug("Task prematurely completed: "+wt.toString());	
+end
+
+// RULES for ACTIVATING DECISION NODES UPON INPUT
+rule "SSS2SSDD-InBranchConditions"
+    when 
+        $task : WorkflowTask( getTaskType().getId() == WPManagementWorkflow.TASKTYPE_SSS_REVISING &&
+        					 ( lifecycleState==TaskLifecycle.State.COMPLETED || 
+        					  (lifecycleState==TaskLifecycle.State.ACTIVE && getOutputState()==TaskLifecycle.OutputState.OUTPUT_SUFFICIENT))
+        					 ) @watch ( outputState, lifecycleState )
+        $dn : DecisionNodeInstance( getWorkflow().getId().equals($task.getWorkflow().getId()) &&
+        							getDefinition().getId().equals("SSS2SSDD") && 
+        							getInBranchForWorkflowTask($task) != null &&
+        							!isTaskCompletionConditionsFullfilled())					  
+    then
+         log.debug("Transition from SSS to SSDD for triggertask: "+$task.toString());
+		modify($dn){ activateInBranch($dn.getInBranchForWorkflowTask($task)) }
+end
+rule "SSDD2FEDDetc-InBranchConditions"
+    when 
+        $task : WorkflowTask( getTaskType().getId() == WPManagementWorkflow.TASKTYPE_SSDD_REVISING &&
+        					 ( lifecycleState==TaskLifecycle.State.COMPLETED || 
+        					  (lifecycleState==TaskLifecycle.State.ACTIVE && getOutputState()==TaskLifecycle.OutputState.OUTPUT_SUFFICIENT))
+        					 ) @watch ( outputState, lifecycleState )
+        $dn : DecisionNodeInstance( getWorkflow().getId().equals($task.getWorkflow().getId()) &&
+        							getDefinition().getId().equals("SSDD2FEDDandSRSMapping") && 
+        							getInBranchForWorkflowTask($task) != null &&
+        							!isTaskCompletionConditionsFullfilled())					  
+    then
+         log.debug("Transition from SSDD to FEDD and SRS for triggertask: "+$task.toString());
+		modify($dn){ activateInBranch($dn.getInBranchForWorkflowTask($task)) }
+end
+*/

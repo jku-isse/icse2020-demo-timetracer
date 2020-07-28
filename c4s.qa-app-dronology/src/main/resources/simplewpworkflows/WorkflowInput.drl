@@ -1,0 +1,54 @@
+package c4s.impactassessment.process.input
+
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import c4s.jiralightconnector.IssueAgent;
+import java.sql.Timestamp;
+import java.util.Properties;
+import c4s.impactassessment.workflowmodel.*;
+
+import com.atlassian.jira.rest.client.api.domain.IssueLinkType;
+import com.atlassian.jira.rest.client.api.domain.Subtask;
+import com.atlassian.jira.rest.client.api.domain.IssueField;
+
+import org.apache.commons.lang3.StringUtils;
+
+import core.base.Artifact;
+import core.base.Relation;
+import core.fieldValues.common.*;
+import core.fieldValues.jira.*;
+import core.fieldTypes.utility.FieldType;
+
+global WorkflowDefinitionRegistry wfdReg;
+global org.apache.logging.log4j.Logger log;
+
+
+
+rule "NewProcess"
+	when
+		$artifact : Artifact( ((IssueType)getFields().get("issuetype").getValue()).getName().orElse("").equals("Task") || 
+							   ((IssueType)getFields().get("issuetype").getValue()).getName().orElse("").equals("Sub-task") || 
+							   ((IssueType)getFields().get("issuetype").getValue()).getName().orElse("").equals("Design Definition") || 
+							   ((IssueType)getFields().get("issuetype").getValue()).getName().orElse("").equals("Bug") ||
+							   ((IssueType)getFields().get("issuetype").getValue()).getName().orElse("").equals("Hazard") )
+	then
+		log.debug("Artifact ID: "+$artifact.getIdInSource());
+		String wfdId = DronologyWorkflow.WORKFLOW_TYPE;
+		WorkflowDefinition wfd = wfdReg.getDefinitionById(wfdId);
+		if (wfd == null) {
+			log.warn("No WorkflowDefinition registered with ID: "+wfdId);
+		} else {
+			WorkflowInstance wfi = wfd.createInstance($artifact.getIdInSource()); 
+			wfi.addOrReplaceProperty("ID", $artifact.getId());			
+			wfi.addOrReplaceProperty("Issue Type", ((IssueType)$artifact.getFields().get("issuetype").getValue()).getName().orElse(""));
+			if (!((IssueType)$artifact.getFields().get("issuetype").getValue()).getName().orElse("").equals("Hazard"))
+				wfi.addOrReplaceProperty("Priority", ""+((Priority)$artifact.getFields().get("priority").getValue()).getName().orElse(""));
+			insert(wfi);			
+			log.debug("New WorkflowInstance Inserted: "+wfi.getId());
+			wfi.enableWorkflowTasksAndDecisionNodes().stream().forEach(wfo -> {	insert(wfo); });								 
+			log.debug("Inserting DNIs for workflow: "+wfi.getId());
+		
+		}
+end
