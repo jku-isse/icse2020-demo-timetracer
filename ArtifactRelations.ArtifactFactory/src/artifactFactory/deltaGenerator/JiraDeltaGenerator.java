@@ -1,6 +1,9 @@
 package artifactFactory.deltaGenerator;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.charset.MalformedInputException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -23,6 +26,8 @@ import core.base.IdentifiableRelationMemory;
 import core.base.PropertyChangeLogItem;
 import core.base.RelationChangeLogItem;
 import core.fieldValues.common.Serializer;
+import core.jira.JiraType;
+import core.persistence.IJiraArtifactService;
 import core.services.ErrorLoggerServiceFactory;
 import core.services.JiraServiceFactory;
 import core.services.Neo4JServiceFactory;
@@ -35,6 +40,7 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 	private JiraChangeLogFieldToFieldIdMapper fieldFactoryMapper;
 	private Map<String, Object> names;
 	private Map<String, Object> schema;
+	private IJiraArtifactService artifactService;
 	
 	@SuppressWarnings("unchecked")
 	public JiraDeltaGenerator(Object schema, Object names) {
@@ -48,7 +54,7 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 		this.idFactoryMapper = new JiraIdFactoryMapper(idTypeMapper, TypeFactories.Jira.getValue(), false);
 			
 		relationMemory = Neo4JServiceFactory.getNeo4JServiceManager().getRelationMemoryService().fetchRelationMemory();
-		
+		this.artifactService = JiraServiceFactory.getJiraArtifactService();
 	}
 	
 	@Override
@@ -185,41 +191,128 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 		}
 				
 	}
-	
-	
+
 	@SuppressWarnings("rawtypes")
 	private ChangeLogItem updateFields(PropertyChangeLogItem changeLogItem, BaseChangeLogItem baseChangeLogItem) throws JsonParseException, JsonMappingException, IOException {
-		
+
 		String fieldId = fieldFactoryMapper.map(baseChangeLogItem.getField());
-		IFieldTypeFactory fieldTypeFactory = idFactoryMapper.map(fieldId);		
-		Object newData, oldData;
+		IFieldTypeFactory fieldTypeFactory = idFactoryMapper.map(fieldId);
+		Map<String, Object> newData = null, oldData = null, map = null;
 		String newDataString, oldDataString;
-						
-		try {
-			newData = jsonToMap(baseChangeLogItem.getNewValue());
-			oldData = jsonToMap(baseChangeLogItem.getOldValue());
-		} catch(Exception e) {
-			ErrorLoggerServiceFactory.getErrorLogger().log(Level.WARNING, "DeltaGenerator: updateFields(): " + e.getMessage() + " (" + baseChangeLogItem.getField() + " cannot be deserialized)\n");
-			return changeLogItem;
-		}
-			
+		Map<String, Object> content;
+
 		newDataString = baseChangeLogItem.getToString();
 		oldDataString = baseChangeLogItem.getFromString();
-	
-		if(fieldTypeFactory!=null) {
-					
-			changeLogItem.setTo(createSerializedMap(fieldId, newDataString, newData, fieldTypeFactory));		
-			changeLogItem.setFrom(createSerializedMap(fieldId, oldDataString, oldData, fieldTypeFactory));		
-			
+
+		changeLogItem.setField(baseChangeLogItem.getField());
+		changeLogItem.setId(baseChangeLogItem.getId());
+
+		//in case the field indicates a subtype we fetch the information
+		//from the Service API depending on the interface implementation
+		JiraType[] types = JiraType.values();
+		Method m;
+		Object data;
+		boolean subTypeChangeLogItem = false;
+
+		for(int i=0; i<types.length; i++) {
+			if(changeLogItem.getField().equals(types[i].getName())) {
+				subTypeChangeLogItem = true;
+				m = types[i].getMethod();
+				try {
+
+					if(baseChangeLogItem.getOldValue() != null) {
+						data = m.invoke(artifactService, baseChangeLogItem.getOldValue());
+						if(data != null) {
+							changeLogItem.setFrom((Map<String, Object>) data);
+						} else {
+							map = new HashMap<>();
+							map.put("value", "no information");
+							changeLogItem.setFrom(map);
+						}
+					}
+
+					if(baseChangeLogItem.getNewValue() != null) {
+						data = m.invoke(artifactService, baseChangeLogItem.getNewValue());
+						if(data != null) {
+							changeLogItem.setTo((Map<String, Object>) data);
+						} else {
+							map = new HashMap<>();
+							map.put("value", "no information");
+							changeLogItem.setTo(map);
+						}
+					}
+
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				} catch (InvocationTargetException e) {
+					e.printStackTrace();
+				}
+			}
 		}
-				
+
+		if(!subTypeChangeLogItem) {
+			try {
+				newData = jsonToMap(baseChangeLogItem.getNewValue());
+				if (newData == null && baseChangeLogItem.getToString() != null) {
+					newData = new HashMap<>();
+					newData.put("value", baseChangeLogItem.getToString());
+				}
+			} catch (Exception e) {
+				fieldTypeFactory = new StringFactory();
+				content = new HashMap<>();
+				if (baseChangeLogItem.getNewValue() != null && !baseChangeLogItem.getNewValue().equals("")) {
+					content.put("value", baseChangeLogItem.getNewValue());
+				} else {
+					if (baseChangeLogItem.getToString() != null) {
+						content.put("value", baseChangeLogItem.getToString());
+					}
+				}
+				newData = content;
+			}
+
+			try {
+				oldData = jsonToMap(baseChangeLogItem.getOldValue());
+				if (oldData == null && baseChangeLogItem.getFromString() != null) {
+					oldData = new HashMap<>();
+					oldData.put("value", baseChangeLogItem.getFromString());
+				}
+			} catch (Exception e) {
+				fieldTypeFactory = new StringFactory();
+				content = new HashMap<>();
+				if (baseChangeLogItem.getOldValue() != null && !baseChangeLogItem.getOldValue().equals("")) {
+					content.put("value", baseChangeLogItem.getOldValue());
+				} else {
+					if (baseChangeLogItem.getFromString() != null) {
+						content.put("value", baseChangeLogItem.getFromString());
+					}
+				}
+				oldData = content;
+			}
+
+			if(oldData == null||oldData.isEmpty()) {
+				oldData = new HashMap<>();
+				oldData.put("value", "no information");
+			}
+			if(newData == null||newData.isEmpty()){
+				newData = new HashMap<>();
+				newData.put("value", "no information");
+			}
+
+			if(fieldTypeFactory!=null) {
+				changeLogItem.setTo(createSerializedMap(fieldId, newDataString, newData, fieldTypeFactory));
+				changeLogItem.setFrom(createSerializedMap(fieldId, oldDataString, oldData, fieldTypeFactory));
+			}
+
+		}
+
+
 		return changeLogItem;
 	}
-	
-	
-	
+
+
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private HashMap<String, Object> createSerializedMap(String fieldId, String dataString, Object data, IFieldTypeFactory fieldTypeFactory){
+	private HashMap<String, Object> createSerializedMap(String fieldId, String dataString, Map<String, Object> data, IFieldTypeFactory fieldTypeFactory){
 		
 		Serializer serializer;
 		HashMap<String, Object> dataMap = new HashMap<String, Object>();
@@ -256,16 +349,19 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 			}
 			
 		}
-		
+
+		if(dataMap.get(fieldId) == null) {
+			dataMap.put(fieldId, data.get("value"));
+		}
+
 		return dataMap;
 		
 	}
-	
-	
-	private Map<String, Object> jsonToMap(String json) throws JsonParseException, JsonMappingException, IOException {	
-		if(json==null) return null;
+
+
+	private static Map<String, Object> jsonToMap(String json) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(json, new TypeReference<Map<String, Object>>(){});
+		return mapper.readValue(json, new TypeReference<Map<String, Object>>(){});
 	}
 	
 	

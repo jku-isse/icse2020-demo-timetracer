@@ -155,38 +155,38 @@ public class JiraArtifactService implements IJiraArtifactService {
 	}
 
 	@Override
-	public String getStatus(String statusId) throws JsonParseException, JsonMappingException, IOException {
-		return rawExtension.getStatus(statusId);
+	public Map<String, Object> getStatus(String statusId) throws JsonParseException, JsonMappingException, IOException {
+		return jsonToMap(rawExtension.getStatus(statusId));
 	}
 
 	@Override
-	public String getIssueType(String issueTypeId) throws JsonParseException, JsonMappingException, IOException {
-		return rawExtension.getIssueType(issueTypeId);
+	public Map<String, Object> getIssueType(String issueTypeId) throws JsonParseException, JsonMappingException, IOException {
+		return jsonToMap(rawExtension.getIssueType(issueTypeId));
 	}
 
 	@Override
-	public String getProject(String projectId) throws JsonParseException, JsonMappingException, IOException {
-		return rawExtension.getProject(projectId);
+	public Map<String, Object> getProject(String projectId) throws JsonParseException, JsonMappingException, IOException {
+		return jsonToMap(rawExtension.getProject(projectId));
 	}
 
 	@Override
-	public String getUser(String userKey) throws JsonParseException, JsonMappingException, IOException {
-		return rawExtension.getUser(userKey);
+	public Map<String, Object> getUser(String userKey) throws JsonParseException, JsonMappingException, IOException {
+		return jsonToMap(rawExtension.getUser(userKey));
 	}
 
 	@Override
-	public String getPriority(String priorityId) throws JsonParseException, JsonMappingException, IOException {
-		return rawExtension.getPriority(priorityId);
+	public Map<String, Object> getPriority(String priorityId) throws JsonParseException, JsonMappingException, IOException {
+		return jsonToMap(rawExtension.getPriority(priorityId));
 	}
 
 	@Override
-	public String getVersion(String versionId) throws JsonParseException, JsonMappingException, IOException {
-		return rawExtension.getVersion(versionId);
+	public Map<String, Object> getVersion(String versionId) throws JsonParseException, JsonMappingException, IOException {
+		return jsonToMap(rawExtension.getVersion(versionId));
 	}
 
 	@Override
-	public String getOption(String optionId) throws JsonParseException, JsonMappingException, IOException {
-		return rawExtension.getOption(optionId);
+	public Map<String, Object> getOption(String optionId) throws JsonParseException, JsonMappingException, IOException {
+		return jsonToMap(rawExtension.getOption(optionId));
 	}
 	
 	@Override

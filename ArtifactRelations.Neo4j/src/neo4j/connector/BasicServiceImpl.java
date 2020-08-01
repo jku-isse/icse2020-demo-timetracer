@@ -140,7 +140,7 @@ public class BasicServiceImpl {
 
 		@Override
 		public void addChangeLogItem(ChangeLogItem changeLogItem) {
-			createOrUpdate(changeLogItem);						
+			createOrUpdate(changeLogItem);
 		}
 
 		@Override

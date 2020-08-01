@@ -54,7 +54,7 @@ public interface IJiraArtifactService {
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public String getStatus(String statusId) throws JsonParseException, JsonMappingException, IOException;
+	public Map<String, Object> getStatus(String statusId) throws JsonParseException, JsonMappingException, IOException;
 	
 	/**
 	 * returns the JSON-Data of the issueType with the given id.
@@ -65,7 +65,7 @@ public interface IJiraArtifactService {
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public String getIssueType(String issueTypeId) throws JsonParseException, JsonMappingException, IOException;
+	public Map<String, Object> getIssueType(String issueTypeId) throws JsonParseException, JsonMappingException, IOException;
 	
 	/**
 	 * returns the JSON-Data of the projectType with the given id.
@@ -76,7 +76,7 @@ public interface IJiraArtifactService {
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public String getProject(String projectId) throws JsonParseException, JsonMappingException, IOException;
+	public Map<String, Object> getProject(String projectId) throws JsonParseException, JsonMappingException, IOException;
 	
 	/**
 	 * returns the JSON-Data of the userType with the given id.
@@ -87,7 +87,7 @@ public interface IJiraArtifactService {
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public String getUser(String userKey) throws JsonParseException, JsonMappingException, IOException;
+	public Map<String, Object> getUser(String userKey) throws JsonParseException, JsonMappingException, IOException;
 			
 	/**
 	 * returns the JSON-Data of the optionType with the given id.
@@ -98,7 +98,7 @@ public interface IJiraArtifactService {
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public String getOption(String optionId) throws JsonParseException, JsonMappingException, IOException;
+	public Map<String, Object> getOption(String optionId) throws JsonParseException, JsonMappingException, IOException;
 	
 	/**
 	 * returns the JSON-Data of the priorityType with the given id.
@@ -109,18 +109,17 @@ public interface IJiraArtifactService {
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public String getPriority(String priorityId) throws JsonParseException, JsonMappingException, IOException;
+	public Map<String, Object> getPriority(String priorityId) throws JsonParseException, JsonMappingException, IOException;
 	
 	/**
 	 * returns the JSON-Data of the versionType with the given id.
 	 * 
-	 * @param artifactId
 	 * @return String
 	 * @throws JsonParseException
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public String getVersion(String versionId) throws JsonParseException, JsonMappingException, IOException;
+	public Map<String, Object> getVersion(String versionId) throws JsonParseException, JsonMappingException, IOException;
 	
 	/**
 	 * returns the JSON-Data of the linkType with the given id.

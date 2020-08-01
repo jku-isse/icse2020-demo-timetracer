@@ -54,7 +54,6 @@ public class JiraArtifactFactory implements IArtifactFactory {
 		idNameMapper = new IdValueMapper(this.names);
 		idTypeMapper = new IdValueMapper(this.schema);
 		
-		this.typeGetterMapper = new TypeGetterMapper(idNameMapper, idTypeMapper);
 		historyFactory = new HistoryFactory();
 		deltaGenerator = new JiraDeltaGenerator(this.schema, this.names);
 		
