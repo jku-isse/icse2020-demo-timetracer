@@ -187,7 +187,7 @@ public class testReplayableSession {
 		initialize();
 		
 		ControlLog log = new ControlLog("testReplayableSession");
-		ReplayableSession replayableSession = new ReplayableSession(1, "11726");
+		ReplayableSession replayableSession = new ReplayableSession();
 		
 		ReplayableArtifact artifact;
 		ChangeLogItem lastChange = null;

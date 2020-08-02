@@ -41,9 +41,7 @@ public class PropertyChangeLogItem extends ChangeLogItem {
 	@Override
 	public ReplayableArtifact applyChange(ReplayableArtifact artifact, HashMap<String, ReplayableArtifact> cache) {
 		if(to.isEmpty()) {
-			if(!from.isEmpty()) {
-				artifact.getProperties().remove(from.keySet().iterator().next());
-			}
+			artifact.getProperties().put(field, "null");
 		} else {
 			artifact.getProperties().put(field, to);
 		}
