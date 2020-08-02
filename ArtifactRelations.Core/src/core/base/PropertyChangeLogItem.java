@@ -45,7 +45,7 @@ public class PropertyChangeLogItem extends ChangeLogItem {
 				artifact.getProperties().remove(from.keySet().iterator().next());
 			}
 		} else {
-			artifact.getProperties().putAll(to);
+			artifact.getProperties().put(field, to);
 		}
 		return artifact;
 	}
@@ -53,11 +53,9 @@ public class PropertyChangeLogItem extends ChangeLogItem {
 	@Override
 	public ReplayableArtifact undoChange(ReplayableArtifact artifact, HashMap<String, ReplayableArtifact> cache) {
 		if(from.isEmpty()) {
-			if(!to.isEmpty()) {
-				artifact.getProperties().remove(to.keySet().iterator().next());
-			}
+			artifact.getProperties().put(field, "null");
 		} else {
-			artifact.getProperties().putAll(from);
+			artifact.getProperties().put(field, from);
 		}
 		return artifact;
 	}

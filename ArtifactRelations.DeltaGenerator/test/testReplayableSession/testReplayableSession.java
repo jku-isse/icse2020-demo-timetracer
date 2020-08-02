@@ -9,14 +9,12 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import artifactFactory.factories.JiraArtifactFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import core.base.Artifact;
-import core.base.ControlLog;
-import core.base.ErrorLogger;
-import core.base.ReplayableArtifact;
+import core.base.*;
 import core.services.ErrorLoggerServiceFactory;
 import core.services.JiraArtifactFactoryServiceFactory;
 import core.services.JiraServiceFactory;
@@ -189,10 +187,11 @@ public class testReplayableSession {
 		initialize();
 		
 		ControlLog log = new ControlLog("testReplayableSession");
-		ReplayableSession replayableSession = new ReplayableSession(1, "10136");
+		ReplayableSession replayableSession = new ReplayableSession(1, "11726");
 		
 		ReplayableArtifact artifact;
-		
+		ChangeLogItem lastChange = null;
+		PropertyChangeLogItem lastPropertyChange;
 		log.setSubTopic("Undone Update");
 		/*artifact = replayableSession.getLastArtifactChanged().get();
 		
@@ -201,16 +200,28 @@ public class testReplayableSession {
 		log.addLog("LinksIncoming:		" + artifact.getRelationsIncoming());
 		log.addLog("LinksOutgoing:		" + artifact.getRelationsOutgoing());
 		log.addLog("\n");*/
-		
+
+
 		while(!replayableSession.areAllUpdatesUndone()) {
-			replayableSession.backward();	
+
+			replayableSession.backward();
 			artifact = replayableSession.getLastArtifactChanged().get();
-			
+			lastChange = replayableSession.getCurrentChangeLogItem();
+
+			if(lastChange != null && lastChange instanceof PropertyChangeLogItem) {
+				lastPropertyChange = (PropertyChangeLogItem) lastChange;
+				log.addLog("\n");
+				log.addLog("field : " + lastPropertyChange.getField() + "changed to: " + artifact.getProperties().get(lastPropertyChange.getField()));
+				log.addLog("\n");
+				log.addLog(" was " + lastPropertyChange.getTo());
+				log.addLog("\n");
+			}
+
 			log.addLog("Undone Update of 	" + artifact.getId());
 			if(replayableSession.getCurrentChangeLogItem()!=null&&replayableSession.getCurrentChangeLogItem().getId()!=null) {
 				log.addLog(replayableSession.getCurrentChangeLogItem().getId());
 			}
-						
+
 			log.addLog("Properties:			" + artifact.getProperties().toString());
 			log.addLog("LinksIncoming:		" + artifact.getRelationsIncoming());
 			log.addLog("LinksOutgoing:		" + artifact.getRelationsOutgoing());
@@ -222,11 +233,22 @@ public class testReplayableSession {
 		while(!replayableSession.isFullyUpdated()) {
 			replayableSession.forward();	
 			artifact = replayableSession.getLastArtifactChanged().get();
+			lastChange = replayableSession.getCurrentChangeLogItem();
 			
 			log.addLog("Update of 	" + artifact.getId());
 			if(replayableSession.getCurrentChangeLogItem()!=null&&replayableSession.getCurrentChangeLogItem().getId()!=null) {
 				log.addLog(replayableSession.getCurrentChangeLogItem().getId());
 			}
+
+			if(lastChange instanceof PropertyChangeLogItem) {
+				lastPropertyChange = (PropertyChangeLogItem) lastChange;
+				log.addLog("\n");
+				log.addLog("field : " + lastPropertyChange.getField() + " changed: " +  lastPropertyChange.getField() + " changed to: " + artifact.getProperties().get(lastPropertyChange.getField()));
+				log.addLog("\n");
+				log.addLog("was " + lastPropertyChange.getFrom());
+				log.addLog("\n");
+			}
+
 			log.addLog("Properties:			" + artifact.getProperties().toString());
 			log.addLog("LinksIncoming:		" + artifact.getRelationsIncoming());
 			log.addLog("LinksOutgoing:		" + artifact.getRelationsOutgoing());

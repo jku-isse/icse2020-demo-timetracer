@@ -143,7 +143,7 @@ public class ReplayableSession implements IReplayableSession {
 		} else {
 			ReplayableArtifact replayableArtifact = artifactCache.get(changeLogItem.getCorrespondingArtifactId());
 			timestamp = changeLogItem.getTimestamp();
-			replayableArtifact = replayableArtifact.undoUpdate(changeLogItem, artifactCache);
+			replayableArtifact.undoUpdate(changeLogItem, artifactCache);
 			lastChanged = replayableArtifact;
 			fullyUpdated = false;
 		}	

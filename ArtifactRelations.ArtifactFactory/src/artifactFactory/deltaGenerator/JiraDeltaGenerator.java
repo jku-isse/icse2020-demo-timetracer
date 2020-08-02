@@ -216,9 +216,21 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 
 		for(int i=0; i<types.length; i++) {
 			if(changeLogItem.getField().equals(types[i].getName())) {
+
 				subTypeChangeLogItem = true;
 				m = types[i].getMethod();
+
 				try {
+
+					if(types[i] == JiraType.STATUS || types[i] == JiraType.PRIORITY) {
+						if(baseChangeLogItem.getNewValue().length()>1) {
+							baseChangeLogItem.setNewValue(baseChangeLogItem.getNewValue().charAt(4) + "");
+						}
+
+						if(baseChangeLogItem.getOldValue().length()>1) {
+							baseChangeLogItem.setOldValue(baseChangeLogItem.getOldValue().charAt(4) + "");
+						}
+					}
 
 					if(baseChangeLogItem.getOldValue() != null) {
 						data = m.invoke(artifactService, baseChangeLogItem.getOldValue());
@@ -260,7 +272,7 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 			} catch (Exception e) {
 				fieldTypeFactory = new StringFactory();
 				content = new HashMap<>();
-				if (baseChangeLogItem.getNewValue() != null && !baseChangeLogItem.getNewValue().equals("")) {
+				if (baseChangeLogItem.getNewValue() != null) {
 					content.put("value", baseChangeLogItem.getNewValue());
 				} else {
 					if (baseChangeLogItem.getToString() != null) {
@@ -279,7 +291,7 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 			} catch (Exception e) {
 				fieldTypeFactory = new StringFactory();
 				content = new HashMap<>();
-				if (baseChangeLogItem.getOldValue() != null && !baseChangeLogItem.getOldValue().equals("")) {
+				if (baseChangeLogItem.getOldValue() != null) {
 					content.put("value", baseChangeLogItem.getOldValue());
 				} else {
 					if (baseChangeLogItem.getFromString() != null) {
