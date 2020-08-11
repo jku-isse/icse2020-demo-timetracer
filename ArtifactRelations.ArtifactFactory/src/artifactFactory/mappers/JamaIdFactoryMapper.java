@@ -44,7 +44,7 @@ public class JamaIdFactoryMapper extends AbstractIdFactoryMapper{
 		
 		//in case the current type is a one line string
 		if(resultFactory==null) {
-			ErrorLoggerServiceFactory.getErrorLogger().log(Level.INFO, "IdFactoryMapper: map(String ig): No specific information about type therfore using ObjectFactory(type: " + id + ")");
+			ErrorLoggerServiceFactory.getErrorLogger().log(Level.CONFIG, "IdFactoryMapper: map(String ig): No specific information about type therfore using ObjectFactory(type: " + id + ")");
 			resultFactory = new ObjectFactory();	
 		}
 	

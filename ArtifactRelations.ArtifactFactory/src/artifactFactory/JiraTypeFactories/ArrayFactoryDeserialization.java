@@ -24,7 +24,15 @@ public class ArrayFactoryDeserialization<T extends Serializer> implements IField
 		Array<T> array = new Array();
 		ArrayList<Object> list = new ArrayList<Object>();			
 				
-		((Map<String, Object>) object).forEach((x,y) -> list.add(Integer.parseInt(x),y));
+		((Map<String, Object>) object).forEach((x,y) -> {
+			int pos;
+			try {
+				pos = Integer.parseInt(x);
+				list.add(pos,y);
+			} catch (NumberFormatException e) {
+				//we swallow this for now: FIXME (this is most likely an error due to wrong replaying to original version
+			}						
+			});
 		
 		T[] items = (T[]) new Serializer[list.size()];
 		

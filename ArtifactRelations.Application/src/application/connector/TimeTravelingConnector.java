@@ -29,6 +29,10 @@ public class TimeTravelingConnector implements ITimeTravelingConnector{
 	private JiraArtifactFactory artifactFactory;
 	private ReplayableSession replayableSession;
 
+	public ReplayableSession getReplayableSession() {
+		return replayableSession;
+	}
+
 	public static void main(String[] args) {
 
 		try {
@@ -73,6 +77,8 @@ public class TimeTravelingConnector implements ITimeTravelingConnector{
 		replayableSession = new ReplayableSession();
 		
 	}
+	
+	
 
 	@Override
 	public Optional<Artifact> fetchAndMonitor(String artifactKey) {	

@@ -107,15 +107,20 @@ public class JiraArtifactFactory implements IArtifactFactory {
 		
 		rawFields.forEach((x,y) -> {
 					
-			//fieldName serves as id(stored in x)
-			//for customFields id!=name 
-			String name = (String) idNameMapper.map(x);
-			IFieldTypeFactory factory = idFactoryMapper.map(x);	
-		
+			try {
+				//fieldName serves as id(stored in x)
+				//for customFields id!=name 
+				String name = (String) idNameMapper.map(x);
+				IFieldTypeFactory factory = idFactoryMapper.map(x);	
 
-			if(factory!=null&&name!=null) {
-				Serializer fieldType = factory.createFieldType(y);
-				fields.put(x, new FieldType<Serializer>(name, x, fieldType));
+
+				if(factory!=null&&name!=null) {
+					Serializer fieldType = factory.createFieldType(y);
+					fields.put(x, new FieldType<Serializer>(name, x, fieldType));
+				}
+			} catch (Exception e) {
+				
+				throw e;
 			}		
 			
 		});

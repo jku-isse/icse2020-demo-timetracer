@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import core.persistence.IJiraArtifactService;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -26,6 +27,7 @@ public class JSONArtifactService implements IJiraArtifactService {
     private Map<String, Object> issueLinkTypes;
     private Map<String, Object> names;
     private Map<String, Object> schema;
+    private boolean isInitialized = false;
 
 
     public JSONArtifactService() throws IOException {
@@ -33,21 +35,19 @@ public class JSONArtifactService implements IJiraArtifactService {
         StringBuilder sb = new StringBuilder();
         String line;
 
-        BufferedReader br = new BufferedReader (new FileReader("Dronology_items.json"));
-        while((line=br.readLine())!=null) {sb.append(line);}
-        br.close();
-        map = jsonToMap(sb.toString());
-        ArrayList<Object> issues = (ArrayList<Object>) map.get("issues");
-        issues.addAll((ArrayList<Object>) map.get("issues"));
-
-        sb = new StringBuilder();
-        br = new BufferedReader (new FileReader("Dronology_items_1.json"));
-        while((line=br.readLine())!=null) {sb.append(line);}
-        br.close();
-        map = jsonToMap(sb.toString());
-        issues.addAll((ArrayList<Object>) map.get("issues"));
-
-
+//        BufferedReader br = new BufferedReader (new FileReader("Dronology_items.json"));
+//        while((line=br.readLine())!=null) {sb.append(line);}
+//        br.close();
+//        map = jsonToMap(sb.toString());
+//        ArrayList<Object> issues = (ArrayList<Object>) map.get("issues");
+//        issues.addAll((ArrayList<Object>) map.get("issues"));
+//
+//        sb = new StringBuilder();
+//        br = new BufferedReader (new FileReader("Dronology_items_1.json"));
+//        while((line=br.readLine())!=null) {sb.append(line);}
+//        br.close();
+//        map = jsonToMap(sb.toString());
+//        issues.addAll((ArrayList<Object>) map.get("issues"));
 
         artifactMapKey = new HashMap<>();
         artifactMapId = new HashMap<>();
@@ -62,17 +62,9 @@ public class JSONArtifactService implements IJiraArtifactService {
         issueTypes = new HashMap<>();
 
 
-
-
-        issues.forEach( issue -> {
-            artifactMapKey.put((String) ((Map<String, Object>) issue).get("key"), issue);
-            artifactMapId.put((String) ((Map<String, Object>) issue).get("id"), issue);
-        });
-
-
         sb = new StringBuilder();
-        issues = new ArrayList<>();
-        br = new BufferedReader (new FileReader("projects.json"));
+        ArrayList<Object> issues = new ArrayList<>();
+        BufferedReader br = new BufferedReader (new FileReader("projects.json"));
         while((line=br.readLine())!=null) {sb.append(line);}
         br.close();
         map = jsonToMap(sb.toString());
@@ -177,6 +169,32 @@ public class JSONArtifactService implements IJiraArtifactService {
         schema = (Map<String, Object>) map.get("schema");
 
     }
+    
+    private void loadIssues() throws IOException {
+    	Map<String, Object> map;
+        StringBuilder sb = new StringBuilder();
+        String line;
+
+        BufferedReader br = new BufferedReader (new FileReader("Dronology_items.json"));
+        while((line=br.readLine())!=null) {sb.append(line);}
+        br.close();
+        map = jsonToMap(sb.toString());
+        ArrayList<Object> issues = (ArrayList<Object>) map.get("issues");
+        issues.addAll((ArrayList<Object>) map.get("issues"));
+
+        sb = new StringBuilder();
+        br = new BufferedReader (new FileReader("Dronology_items_1.json"));
+        while((line=br.readLine())!=null) {sb.append(line);}
+        br.close();
+        map = jsonToMap(sb.toString());
+        issues.addAll((ArrayList<Object>) map.get("issues"));
+        
+        issues.forEach( issue -> {
+            artifactMapKey.put((String) ((Map<String, Object>) issue).get("key"), issue);
+            artifactMapId.put((String) ((Map<String, Object>) issue).get("id"), issue);
+        });
+        isInitialized = true;
+    }
 
     private static Map<String, Object> jsonToMap(String json) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
@@ -185,19 +203,34 @@ public class JSONArtifactService implements IJiraArtifactService {
 
     @Override
     public Map<String, Object> getArtifact(String id) {
-        return (Map<String, Object>) artifactMapId.get(id);
+       
+    	if (!isInitialized) {
+    		try {
+    			loadIssues();
+    		} catch (IOException e) {			
+    			e.printStackTrace();
+    		}
+    	}
+    	return (Map<String, Object>) artifactMapId.get(id);
     }
 
     @Override
     public ArrayList<Object> getAllArtifacts() {
-        ArrayList<Object> issues = new ArrayList<>();
+    	if (!isInitialized) {
+    		try {
+    			loadIssues();
+    		} catch (IOException e) {			
+    			e.printStackTrace();
+    		}
+    	}
+    	ArrayList<Object> issues = new ArrayList<>();
         issues.addAll(artifactMapId.values());
         return issues;
     }
 
     @Override
     public ArrayList<Object> getAllUpdatedArtifacts(Timestamp timestamp)  {
-        ArrayList<Object> issues = new ArrayList<>();
+    	ArrayList<Object> issues = new ArrayList<>();
         return issues;
     }
 
@@ -288,6 +321,13 @@ public class JSONArtifactService implements IJiraArtifactService {
 
     @Override
     public String getArtifactIdFromKey(String key) {
-        return (String) ((Map<String, Object>) (artifactMapKey.get(key))).get("id");
+       if (!isInitialized) {
+    	   try {
+			loadIssues();
+		} catch (IOException e) {			
+			e.printStackTrace();
+		}
+       }
+    	return (String) ((Map<String, Object>) (artifactMapKey.get(key))).get("id");
     }
 }

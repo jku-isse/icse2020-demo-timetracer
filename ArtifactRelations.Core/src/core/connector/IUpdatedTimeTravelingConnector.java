@@ -2,7 +2,7 @@ package core.connector;
 
 import core.ReplayableSession.IReplayableSession;
 
-public interface IUpdatedTimeTravelingConnector {
+public interface IUpdatedTimeTravelingConnector extends IConnector {
 
 	/**
 	 * returns a ReplayableSession for all artifacts located in the 

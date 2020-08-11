@@ -127,6 +127,7 @@ public class ReplayableSession implements IReplayableSession {
 			replayableArtifact = replayableArtifact.updateArtifact(changeLogItem, artifactCache);
 			lastChanged = replayableArtifact;
 			allUpdatesUndone = false;
+			
 		}	
 		
 	}
@@ -335,7 +336,7 @@ public class ReplayableSession implements IReplayableSession {
 		for(ReplayableArtifact ra : roots) {
 			try {
 				ra = (ReplayableArtifact) JiraArtifactFactoryServiceFactory.getJiraArtifactFactory().deserialize(ra);
-			} catch (Exception e) {
+			} catch (Exception e) {				
 				ErrorLoggerServiceFactory.getErrorLogger().log(Level.WARNING, "ReplayableSession : getRoots() : Deserialization was not successful");
 			}
 		}
