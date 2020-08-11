@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import application.connector.CouchDBToNeo4J;
 import application.connector.JSONToNeo4J;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,12 +16,12 @@ import application.connector.JiraToNeo4J;
 
 public class testJiraToNeo4J {
 
-	private JSONToNeo4J jtn4j;
+	private CouchDBToNeo4J jtn4j;
 	
 	@Before
 	public void init() throws FileNotFoundException, IOException, NoSuchMethodException, SecurityException {
 		
-		jtn4j = new JSONToNeo4J();
+		jtn4j = new CouchDBToNeo4J();
 		
 	}
 	
@@ -34,10 +35,8 @@ public class testJiraToNeo4J {
 	
 	@Test
 	public void testfillDatabase() throws JsonParseException, JsonMappingException, IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		
-		jtn4j.purgeNeo4Database();			
+		jtn4j.purgeNeo4Database();
 		jtn4j.fetchCompleteServiceDatabase();
-
 	}
 	
 	@Test

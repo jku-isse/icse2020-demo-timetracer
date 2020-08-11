@@ -79,7 +79,7 @@ public class JiraArtifactFactory implements IArtifactFactory {
 		
 		Map<String, Object> map = (Map<String, Object>) data;
 		
-		artifact.setId((String) map.get("id"));
+		artifact.setId(map.get("id").toString());
 		artifact.setService(Services.Jira.getValue());
 		artifact.setIdInSource((String) map.get("key"));
 		artifact.setOrigin((String) map.get("self"));

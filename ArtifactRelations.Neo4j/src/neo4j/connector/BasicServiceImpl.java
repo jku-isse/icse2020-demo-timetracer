@@ -48,6 +48,7 @@ public class BasicServiceImpl {
 
 		@Override
 		public void addArtifact(IdentifiableArtifact artifact) {
+			System.out.println(artifact.getId());
 			createOrUpdate(artifact);			
 		}
 

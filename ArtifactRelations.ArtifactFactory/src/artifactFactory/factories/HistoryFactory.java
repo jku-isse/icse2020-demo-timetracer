@@ -11,15 +11,17 @@ import java.util.Map;
 
 public class HistoryFactory {	
 
+	private static int changeCountCurArtifact = 0;
 	
 	@SuppressWarnings("unchecked")
 	public ArrayList<BaseChangeLogItem> buildChangeLog(Map<String, Object> artifactData) throws JsonParseException, JsonMappingException, IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
+		changeCountCurArtifact = 0;
 
 		Map<String, Object> changeLog = (Map<String, Object>) artifactData.get("changelog");
 		ArrayList<Object> histories = (ArrayList<Object>) changeLog.get("histories");
 		String correspondingArtifactKey = (String) artifactData.get("key");
-		String correspondingArtifactId = (String) artifactData.get("id");
+		String correspondingArtifactId = artifactData.get("id").toString();
 		ArrayList<BaseChangeLogItem> changeLogItems = new ArrayList<BaseChangeLogItem>();
 
 		for(int i=0; i<histories.size(); i++) {
@@ -37,17 +39,30 @@ public class HistoryFactory {
 		ArrayList<BaseChangeLogItem> changeLogItems = new ArrayList<BaseChangeLogItem>();
 		ArrayList<Map<String, Object>> items = (ArrayList<Map<String, Object>>) itemData.get("items");
 		String from, to;
+
 		
 		for(int i=0; i<items.size(); i++) {
 			
 			BaseChangeLogItem changeLogItem = new BaseChangeLogItem();
-			
+
+			if(itemData.get("id") == null) {
+				changeLogItem.setId("change_" + changeCountCurArtifact + "_" + correspondingArtifactIdInSource);
+
+			} else {
+				changeLogItem.setId(itemData.get("id") + "_" + i);
+			}
+
+			changeCountCurArtifact++;
+
 			changeLogItem.setCorrespondingArtifactIdInSource(correspondingArtifactIdInSource);
 			changeLogItem.setTimeCreated((String) itemData.get("created"));
-			changeLogItem.setId(((String) itemData.get("id")) + "_" + i);
 			changeLogItem.setField((String) items.get(i).get("field"));
 			changeLogItem.setFieldType((String) items.get(i).get("fieldtype"));
-			
+
+			if(changeLogItem.getFieldType()==null) {
+				changeLogItem.setFieldType((String) items.get(i).get("fieldType"));
+			}
+
 			changeLogItem.setFromString((String) items.get(i).get("fromString"));
 			changeLogItem.setToString((String) items.get(i).get("toString"));
 			changeLogItem.setArtifactId(correspondingArtifactId);

@@ -237,9 +237,7 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 						if(data != null) {
 							changeLogItem.setFrom((Map<String, Object>) data);
 						} else {
-							map = new HashMap<>();
-							map.put("value", "no information");
-							changeLogItem.setFrom(map);
+							changeLogItem.setFrom(null);
 						}
 					}
 
@@ -248,9 +246,7 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 						if(data != null) {
 							changeLogItem.setTo((Map<String, Object>) data);
 						} else {
-							map = new HashMap<>();
-							map.put("value", "no information");
-							changeLogItem.setTo(map);
+							changeLogItem.setTo(null);
 						}
 					}
 
@@ -262,7 +258,7 @@ public class JiraDeltaGenerator implements IDeltaGenerator{
 			}
 		}
 
-		if(!subTypeChangeLogItem) {
+		if(!subTypeChangeLogItem || (changeLogItem.getTo()==null && changeLogItem.getFrom() == null)) {
 			try {
 				newData = jsonToMap(baseChangeLogItem.getNewValue());
 				if (newData == null && baseChangeLogItem.getToString() != null) {
