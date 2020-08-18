@@ -184,6 +184,11 @@ public class ReplayableSession implements IReplayableSession {
 		history.removeAll(items);
 	}
 	
+	public Timestamp getTimeOfNextFutureItem() {
+		if (fullyUpdated) return null;
+		return sortedHistory.get(currentState).getTimestamp();
+	}
+	
 	private ChangeLogItem getNextItem() {
 		if(fullyUpdated) return null;
 		ChangeLogItem changeLogItem = sortedHistory.get(currentState);

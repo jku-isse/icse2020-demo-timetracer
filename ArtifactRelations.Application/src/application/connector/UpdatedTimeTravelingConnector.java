@@ -54,6 +54,7 @@ public class UpdatedTimeTravelingConnector implements IUpdatedTimeTravelingConne
 			rs = new ReplayableSession(depth, artifactKeys);			
 			return rs;
 		} catch (Exception e) {
+			e.printStackTrace();
 			ErrorLoggerServiceFactory.getErrorLogger().log(Level.WARNING, "Requested Session could not be created!");
 			return null;
 		}

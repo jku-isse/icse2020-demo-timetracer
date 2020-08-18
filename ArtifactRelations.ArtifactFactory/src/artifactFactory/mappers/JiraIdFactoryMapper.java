@@ -47,7 +47,7 @@ public class JiraIdFactoryMapper extends AbstractIdFactoryMapper{
 		
 		//in case the current type is a one line string
 		if(resultFactory==null) {
-			ErrorLoggerServiceFactory.getErrorLogger().log(Level.INFO, "JiraIdFactoryMapper: map(String id): No specific information about type therfore using ObjectFactory(type: " + id + ")");
+			ErrorLoggerServiceFactory.getErrorLogger().log(Level.FINEST, "JiraIdFactoryMapper: map(String id): No specific information about type therfore using ObjectFactory(type: " + id + ")");
 			resultFactory = new ObjectFactory();	
 		}
 	
