@@ -41,6 +41,8 @@ public class Artifact extends IdentifiableArtifact implements Cloneable{
 				
 				if(y.getValue()!=null && y.getValue().serialize()!=null) {
 					artifact.put(x, y.getValue().serialize());				
+				} else {
+					artifact.put(x, "null");
 				}
 			
 			});

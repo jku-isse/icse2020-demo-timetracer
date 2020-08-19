@@ -115,6 +115,12 @@ public class JiraArtifactFactory implements IArtifactFactory {
 
 
 				if(factory!=null&&name!=null) {
+
+					if(y!=null && y.equals("null")) {
+						ErrorLoggerServiceFactory.getErrorLogger().log(Level.INFO, "null field was restored");
+						y = null;
+					}
+
 					Serializer fieldType = factory.createFieldType(y);
 					fields.put(x, new FieldType<Serializer>(name, x, fieldType));
 				}

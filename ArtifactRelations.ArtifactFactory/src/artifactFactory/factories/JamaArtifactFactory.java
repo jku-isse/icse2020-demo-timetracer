@@ -37,7 +37,7 @@ public class JamaArtifactFactory implements IArtifactFactory{
 	private ArrayList<Integer> upstream, downstream;
 	private JamaRelationFactory relationFactory;
 	
-	public JamaArtifactFactory(Map<String, Object> schema) throws IOException {	    
+	public JamaArtifactFactory(Map<String, Object> schema) {
 		relationFactory = new JamaRelationFactory();
 		this.schema = schema;
 		idTypeMapper = new IdValueMapper(this.schema);
@@ -51,7 +51,7 @@ public class JamaArtifactFactory implements IArtifactFactory{
 	}
 
 	@Override
-	public Artifact updateArtifact(Object data, Artifact artifact) throws Exception {
+	public Artifact updateArtifact(Object data, Artifact artifact) {
 		if(data==null||artifact==null) return null;	
 		ReplayableArtifact ra = (ReplayableArtifact) artifact;
 		ra.setRelationCount(ra.getRealRelationCount());
