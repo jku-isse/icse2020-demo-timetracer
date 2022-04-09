@@ -4,7 +4,7 @@
    "description": "react webservice with spring data neo4j backend",
    "dependencies": {
       "immutable": "^3.8.2",
-      "moment": "^2.27.0",
+      "moment": "^2.29.2",
       "react": "^16.13.1",
       "react-bootstrap": "^1.3.0",
       "react-collapsible": "^2.8.0",
